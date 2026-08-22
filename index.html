@@ -22,6 +22,7 @@
   </div>
   <div class="entete-droite">
     <span id="etatReseau" class="pastille" hidden><i></i><span></span></span>
+    <button id="btnPleinEcran" class="bouton-icone" type="button" aria-label="Plein écran" title="Plein écran">⛶</button>
     <button id="btnTheme" class="bouton-icone" type="button" aria-label="Changer de thème" title="Changer de thème">◐</button>
     <button id="btnRegles" class="bouton-icone" type="button" aria-label="Règles du jeu" title="Règles">?</button>
   </div>
@@ -111,7 +112,7 @@
 </section>
 
 <!-- ============ ÉCRAN 2 — TABLE ============ -->
-<section id="ecranTable" class="ecran" hidden>
+<section id="ecranTable" class="ecran ecran-table" hidden>
 
   <div class="barre-table">
     <div class="bloc-code">
@@ -125,10 +126,22 @@
       <span id="infoBlindes" class="badge badge-md badge-neutral"></span>
       <span id="infoMain" class="badge badge-md badge-outline"></span>
     </div>
-    <button id="btnQuitter" class="btn-mini btn-mini-danger" type="button">Quitter la table</button>
+    <div class="bloc-boutons">
+      <button id="btnRecaver" class="btn-mini" type="button" hidden>Recaver</button>
+      <button id="btnSeLever" class="btn-mini" type="button" hidden>Quitter mon siège</button>
+      <button id="btnBasculerForce" class="btn-mini" type="button">Combinaisons</button>
+      <button id="btnBasculerJournal" class="btn-mini" type="button">Déroulé</button>
+      <button id="btnQuitter" class="btn-mini btn-mini-danger" type="button">Quitter</button>
+    </div>
   </div>
 
   <div class="plateau">
+
+    <!-- Colonne gauche : force des mains, en permanence -->
+    <aside id="panneauForce" class="panneau panneau-force">
+      <span class="ds-eyebrow">Force des mains</span>
+      <ol id="listeForce" class="liste-force"></ol>
+    </aside>
 
     <div class="tapis-enveloppe">
       <div id="tapis" class="tapis">
@@ -141,37 +154,42 @@
       </div>
     </div>
 
-    <aside class="panneau">
-      <div class="panneau-titre">
-        <span class="ds-eyebrow">Déroulé de la partie</span>
-      </div>
+    <aside id="panneauJournal" class="panneau panneau-journal">
+      <span class="ds-eyebrow">Déroulé de la partie</span>
       <ol id="journal" class="journal"></ol>
     </aside>
 
   </div>
 
   <div id="zoneAction" class="zone-action">
-    <div id="messageAction" class="message-action"></div>
+
+    <div class="bandeau-main">
+      <div id="maMain" class="ma-main" hidden></div>
+      <div id="messageAction" class="message-action"></div>
+    </div>
 
     <div id="actionsJeu" class="actions" hidden>
       <div class="pendule" id="pendule" hidden><span id="penduleBarre"></span></div>
+
+      <div id="zoneMise" class="zone-mise" hidden>
+        <div class="raccourcis" id="raccourcis">
+          <button class="jeton-mise" data-fraction="0.25" type="button"><b>¼ pot</b><span></span></button>
+          <button class="jeton-mise" data-fraction="0.5"  type="button"><b>½ pot</b><span></span></button>
+          <button class="jeton-mise" data-fraction="0.75" type="button"><b>¾ pot</b><span></span></button>
+          <button class="jeton-mise" data-fraction="1"    type="button"><b>Pot</b><span></span></button>
+          <button class="jeton-mise" data-fraction="max"  type="button"><b>Tapis</b><span></span></button>
+        </div>
+        <div class="mise-fine">
+          <input id="curseurMise" type="range" min="0" max="100" step="1" aria-label="Montant de la relance">
+          <input id="saisieMise" type="number" inputmode="numeric" aria-label="Montant exact">
+        </div>
+      </div>
+
       <div class="boutons-action">
         <button id="btnCoucher" class="btn btn-md btn-action btn-coucher" type="button">Se coucher</button>
         <button id="btnPasser"  class="btn btn-md btn-action btn-passer"  type="button">Check</button>
         <button id="btnSuivre"  class="btn btn-md btn-action btn-suivre"  type="button">Suivre</button>
         <button id="btnRelancer" class="btn btn-md btn-action btn-relancer" type="button">Relancer</button>
-      </div>
-      <div id="zoneMise" class="zone-mise" hidden>
-        <input id="curseurMise" type="range" min="0" max="100" step="1">
-        <div class="mise-details">
-          <input id="saisieMise" type="number" inputmode="numeric">
-          <div class="raccourcis">
-            <button class="btn-mini" data-fraction="0.5" type="button">½ pot</button>
-            <button class="btn-mini" data-fraction="0.75" type="button">¾ pot</button>
-            <button class="btn-mini" data-fraction="1" type="button">Pot</button>
-            <button class="btn-mini" data-fraction="max" type="button">Tapis</button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -179,10 +197,6 @@
       <button id="btnDistribuer" class="btn btn-md btn-gradient" type="button">Distribuer la main suivante</button>
     </div>
 
-    <div id="actionsJoueur" class="actions-joueur">
-      <button id="btnRecaver" class="btn-mini" type="button" hidden>Recaver</button>
-      <button id="btnSeLever" class="btn-mini" type="button" hidden>Quitter mon siège</button>
-    </div>
   </div>
 
 </section>
@@ -212,20 +226,11 @@
       <li><strong>Tapis</strong> — miser tous vos jetons. Si les autres misent davantage, ils jouent un pot latéral que vous ne pouvez pas gagner.</li>
     </ul>
 
-    <h3>Les mains, de la plus forte à la plus faible</h3>
-    <ol class="liste-mains">
-      <li><strong>Quinte flush royale</strong> — 10 J D R A de la même couleur</li>
-      <li><strong>Quinte flush</strong> — cinq cartes qui se suivent, même couleur</li>
-      <li><strong>Carré</strong> — quatre cartes de même valeur</li>
-      <li><strong>Full</strong> — un brelan et une paire</li>
-      <li><strong>Couleur</strong> — cinq cartes de la même couleur</li>
-      <li><strong>Quinte</strong> — cinq cartes qui se suivent</li>
-      <li><strong>Brelan</strong> — trois cartes de même valeur</li>
-      <li><strong>Double paire</strong></li>
-      <li><strong>Paire</strong></li>
-      <li><strong>Hauteur</strong> — la plus haute carte départage</li>
-    </ol>
-    <p class="petit">L'As vaut 1 ou 14 : il ferme la quinte 10-J-D-R-A comme il ouvre la quinte A-2-3-4-5.</p>
+    <h3>Lire la table</h3>
+    <p>La colonne de gauche rappelle en permanence l'ordre des combinaisons, de la plus forte à la
+    plus faible. Pendant la donne, <strong>votre meilleure main du moment</strong> y est mise en avant,
+    et les cartes qui la composent — les vôtres comme celles du centre — sont cerclées de violet.
+    Les autres joueurs ne voient que la leur.</p>
 
     <h3>Cette table</h3>
     <p>Cash game à six joueurs, jetons fictifs. Vous pouvez recaver entre deux mains, et rejoindre

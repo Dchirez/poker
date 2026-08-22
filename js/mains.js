@@ -139,6 +139,44 @@ export function evaluer(cartes) {
 }
 
 /* ------------------------------------------------------------
+   Meilleure main avec moins de cinq cartes — le cas du préflop, où le
+   joueur n'a que ses deux cartes. `evaluer` exige cinq cartes ; ici on
+   se contente de la paire ou de la carte haute, dans le même format,
+   pour pouvoir annoncer sa main dès le début de la donne.
+   ------------------------------------------------------------ */
+export function evaluerPartielle(cartes) {
+  if (cartes.length >= 5) return evaluer(cartes);
+  if (cartes.length === 0) return null;
+
+  const compte = new Map();
+  for (const c of cartes) {
+    const v = valeurDe(c);
+    if (!compte.has(v)) compte.set(v, []);
+    compte.get(v).push(c);
+  }
+  // Meilleur groupe : d'abord le plus nombreux, puis le plus fort.
+  const groupes = [...compte.entries()].sort((a, b) => b[1].length - a[1].length || b[0] - a[0]);
+  const [rang, retenues] = groupes[0];
+  const categorie = retenues.length >= 4 ? 7
+    : retenues.length === 3 ? 3
+    : retenues.length === 2 ? 1 : 0;
+
+  // Sans paire, la main se résume à ses cartes hautes ; on ne retient
+  // alors que la plus forte pour la mise en valeur.
+  const valeurs = categorie === 0
+    ? cartes.map(valeurDe).sort((a, b) => b - a)
+    : [rang, ...groupes.slice(1).map((g) => g[0])];
+  const contribuent = categorie === 0
+    ? [cartes.reduce((a, b) => (valeurDe(b) > valeurDe(a) ? b : a))]
+    : [...retenues];
+
+  let score = categorie;
+  for (let i = 0; i < 5; i++) score = score * 15 + (valeurs[i] || 0);
+
+  return { score, categorie, valeurs, cartes: contribuent, partielle: true };
+}
+
+/* ------------------------------------------------------------
    Libellé lisible d'une main évaluée : « Full aux Dames par les 7 »,
    « Couleur \u2660 \u00e0 l'As », « Double paire Rois et 8 »…
    ------------------------------------------------------------ */
@@ -166,6 +204,28 @@ export function nommer(res) {
 }
 
 /* Libellé court d'une carte, pour le journal de partie : « A\u2660 ». */
+/* ------------------------------------------------------------
+   Les cartes qui *font* la combinaison, kickers exclus. Surligner les
+   cinq cartes d'une simple paire allumerait presque tout le tapis et ne
+   dirait plus rien ; on ne garde donc que les cartes porteuses.
+   Quinte, couleur et full mobilisent réellement leurs cinq cartes.
+   ------------------------------------------------------------ */
+export function cartesSignificatives(res) {
+  if (!res) return [];
+  if (res.partielle) return res.cartes;          // déjà réduit à l'essentiel
+
+  // Nombre de rangs porteurs, pour les combinaisons fondées sur des groupes.
+  const rangsPorteurs = { 0: 1, 1: 1, 2: 2, 3: 1, 7: 1 }[res.categorie];
+  if (rangsPorteurs === undefined) return res.cartes;   // quinte, couleur, full…
+
+  if (res.categorie === 0) {
+    const haute = Math.max(...res.cartes.map(valeurDe));
+    return res.cartes.filter((c) => valeurDe(c) === haute).slice(0, 1);
+  }
+  const gardes = new Set(res.valeurs.slice(0, rangsPorteurs));
+  return res.cartes.filter((c) => gardes.has(valeurDe(c)));
+}
+
 export function nomCarte(c) {
   return VALEURS[c % 13] + COULEURS[couleurDe(c)];
 }

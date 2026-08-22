@@ -12,7 +12,10 @@ import {
 import {
   ouvrirTable, rejoindreTable, codeValide, monIdentifiant, LONGUEUR_CODE,
 } from "./reseau.js";
-import { rendre, rendrePendule, montrerEcran, erreurAccueil, etatReseau, jetons } from "./vue.js";
+import {
+  rendre, rendrePendule, montrerEcran, erreurAccueil, etatReseau,
+  montantRaccourci, majBoutonRelance, majSelectionRaccourci,
+} from "./vue.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -453,44 +456,76 @@ $("btnCoucher").addEventListener("click", () => envoyer({ t: "action", action: "
 $("btnPasser").addEventListener("click", () => envoyer({ t: "action", action: "checker" }));
 $("btnSuivre").addEventListener("click", () => envoyer({ t: "action", action: "suivre" }));
 
-/* Le bouton « Relancer » ouvre d'abord le curseur, puis valide. */
+/* Le montant est choisi puis validé : le bouton affiche la somme engagée,
+   il n'y a plus d'étape « ouvrir le curseur ». */
 $("btnRelancer").addEventListener("click", () => {
-  const zone = $("zoneMise");
-  if (zone.hidden) {
-    zone.hidden = false;
-    $("saisieMise").focus();
-    $("btnRelancer").textContent = "Valider";
-    return;
-  }
-  const montant = Number($("saisieMise").value);
-  zone.hidden = true;
-  envoyer({ t: "action", action: "relancer", montant });
+  const o = etatCourant && etatCourant.mesActions;
+  if (!o) return;
+  envoyer({ t: "action", action: "relancer", montant: Number($("saisieMise").value) });
 });
 
-/* Curseur et saisie numérique restent synchronisés. */
-$("curseurMise").addEventListener("input", (e) => { $("saisieMise").value = e.target.value; });
-$("saisieMise").addEventListener("input", (e) => { $("curseurMise").value = e.target.value; });
+/* Curseur, saisie numérique et raccourcis décrivent le même montant :
+   toucher l'un met les autres à jour, ainsi que le bouton de validation. */
+function majMontant(valeur) {
+  const o = etatCourant && etatCourant.mesActions;
+  if (!o) return;
+  const borne = Math.max(o.miniRelance, Math.min(o.maxiRelance, Math.round(Number(valeur) || 0)));
+  $("saisieMise").value = borne;
+  $("curseurMise").value = borne;
+  majSelectionRaccourci();
+  majBoutonRelance(o);
+}
+
+$("curseurMise").addEventListener("input", (e) => majMontant(e.target.value));
+$("saisieMise").addEventListener("input", (e) => {
+  // On ne borne pas pendant la frappe, sinon impossible d'effacer le champ.
+  $("curseurMise").value = e.target.value;
+  majSelectionRaccourci();
+  majBoutonRelance(etatCourant && etatCourant.mesActions);
+});
+$("saisieMise").addEventListener("change", (e) => majMontant(e.target.value));
 $("saisieMise").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnRelancer").click(); });
 
-/* Raccourcis de mise en fraction du pot. */
-for (const bouton of document.querySelectorAll(".raccourcis .btn-mini")) {
+/* Raccourcis de mise : chaque bouton propose une somme déjà calculée. */
+for (const bouton of $("raccourcis").children) {
   bouton.addEventListener("click", () => {
     const o = etatCourant && etatCourant.mesActions;
     if (!o) return;
-    const fraction = bouton.dataset.fraction;
-    let cible;
-    if (fraction === "max") {
-      cible = o.maxiRelance;
-    } else {
-      // Mise « pot » au sens usuel : on suit d'abord, puis on mise le pot obtenu.
-      const potApresSuivi = o.pot + o.suivre;
-      cible = o.maMise + o.suivre + Math.round(potApresSuivi * Number(fraction));
-    }
-    cible = Math.max(o.miniRelance, Math.min(o.maxiRelance, cible));
-    $("saisieMise").value = cible;
-    $("curseurMise").value = cible;
+    majMontant(montantRaccourci(o, bouton.dataset.fraction));
   });
 }
+
+/* Panneaux latéraux : masquables, et en tiroir sur petit écran.
+   La bascule part de la visibilité réelle du panneau plutôt que d'un
+   compteur interne : sinon, changer la taille de la fenêtre désynchronise
+   l'état supposé et l'état affiché, et le panneau refuse de revenir. */
+function basculerPanneau(bouton, panneau, classe) {
+  bouton.addEventListener("click", () => {
+    const plateau = document.querySelector(".plateau");
+    const visible = !!panneau.offsetParent;
+    panneau.hidden = visible;
+    // Sur petit écran, la classe fait passer le panneau en tiroir par-dessus
+    // le tapis ; sur grand écran elle ne change rien, la poser est sans effet.
+    plateau.classList.toggle(classe, !visible);
+    bouton.setAttribute("aria-pressed", String(!visible));
+  });
+}
+basculerPanneau($("btnBasculerForce"), $("panneauForce"), "force-ouverte");
+basculerPanneau($("btnBasculerJournal"), $("panneauJournal"), "journal-ouvert");
+
+/* Plein écran : la table gagne toute la hauteur disponible. */
+$("btnPleinEcran").addEventListener("click", async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch (e) {
+    signaler("Le plein écran a été refusé par le navigateur.");
+  }
+});
+document.addEventListener("fullscreenchange", () => {
+  $("btnPleinEcran").textContent = document.fullscreenElement ? "⛶" : "⛶";
+  $("btnPleinEcran").title = document.fullscreenElement ? "Quitter le plein écran" : "Plein écran";
+});
 
 /* Copie du lien d'invitation. */
 $("btnCopier").addEventListener("click", async () => {
