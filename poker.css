@@ -14,7 +14,14 @@
   --carte-rouge:   #c62828;
   --carte-dos:     var(--brand-gradient);
   --gain:          var(--green-500);
-  --hauteur-carte: 72px;
+
+  /* Les cartes suivent la hauteur de la fenêtre : la table occupe
+     l'écran, elles doivent grandir avec lui. */
+  --carte-siege:  clamp(38px, 6.4vh, 64px);
+  --carte-board:  clamp(52px, 9.2vh, 104px);
+  --carte-mienne: clamp(52px, 8.4vh, 92px);
+  --carte-mini:   20px;
+  --hauteur-carte: var(--carte-siege);
 }
 
 [data-theme="dark"] {
@@ -42,7 +49,13 @@ body {
     var(--bg-page);
 }
 
-main { flex: 1; width: 100%; }
+main { flex: 1; width: 100%; min-height: 0; display: flex; flex-direction: column; }
+
+/* En partie, la page devient une application plein écran : plus de
+   défilement général, c'est le tapis qui prend la place disponible. */
+body.en-table { height: 100vh; height: 100dvh; overflow: hidden; }
+body.en-table footer { display: none; }
+body.en-table .entete { padding: var(--space-2) var(--space-4); }
 
 /* ---------- En-tête ---------- */
 
@@ -51,7 +64,9 @@ main { flex: 1; width: 100%; }
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
   max-width: var(--container); width: 100%; margin: 0 auto;
+  flex: none;
 }
+body.en-table .entete { max-width: none; }
 .entete-gauche { display: flex; flex-direction: column; gap: 2px; }
 .marque {
   font-family: var(--font-display); font-weight: var(--weight-bold);
@@ -70,7 +85,6 @@ main { flex: 1; width: 100%; }
 }
 .bouton-icone:hover { color: var(--accent); border-color: var(--border-accent); }
 
-/* Pastille d'état de la connexion */
 .pastille {
   display: inline-flex; align-items: center; gap: var(--space-2);
   padding: 5px 12px; border-radius: var(--radius-pill);
@@ -78,10 +92,7 @@ main { flex: 1; width: 100%; }
   font-family: var(--font-mono); font-size: var(--text-xs);
   color: var(--text-muted);
 }
-.pastille i {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--text-faint); flex: none;
-}
+.pastille i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex: none; }
 .pastille[data-etat="en-ligne"] i { background: var(--status-online); }
 .pastille[data-etat="en-ligne"] { color: var(--text-body); }
 .pastille[data-etat="attente"] i { background: var(--amber-500); animation: battement 1.4s infinite; }
@@ -104,10 +115,7 @@ footer a:hover { color: var(--accent); }
 .ecran { max-width: var(--container); margin: 0 auto; padding: 0 var(--space-5); width: 100%; }
 
 .hero { text-align: center; padding: var(--space-6) 0 var(--space-5); }
-.hero h1 {
-  font-size: clamp(2rem, 6vw, var(--text-5xl));
-  line-height: var(--leading-tight);
-}
+.hero h1 { font-size: clamp(2rem, 6vw, var(--text-5xl)); line-height: var(--leading-tight); }
 .hero-sous {
   max-width: 54ch; margin: var(--space-4) auto 0;
   color: var(--text-muted); font-size: var(--text-lg);
@@ -127,9 +135,7 @@ footer a:hover { color: var(--accent); }
   transition: border-color var(--dur-fast) var(--ease-out),
               box-shadow var(--dur-fast) var(--ease-out);
 }
-.champ input:focus, .champ select:focus {
-  outline: none; border-color: var(--accent); box-shadow: var(--ring-accent);
-}
+.champ input:focus, .champ select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring-accent); }
 .champ-pseudo { max-width: 320px; margin: 0 auto var(--space-6); }
 
 .cartes-accueil {
@@ -139,7 +145,7 @@ footer a:hover { color: var(--accent); }
 .carte-accueil { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); }
 .carte-accueil h2 { font-size: var(--text-2xl); }
 .carte-accueil > p { color: var(--text-muted); font-size: var(--text-sm); }
-.carte-accueil .btn { margin-top: auto; width: 100%; justify-content: center; }
+.carte-accueil .btn { margin-top: auto; width: 100%; }
 
 .reglages { display: grid; gap: var(--space-3); margin: var(--space-2) 0 var(--space-4); }
 
@@ -162,51 +168,75 @@ footer a:hover { color: var(--accent); }
 }
 
 /* ============================================================
-   TABLE — barre d'informations
+   ÉCRAN DE TABLE — grille plein écran
    ============================================================ */
+
+.ecran-table {
+  max-width: none; padding: 0 var(--space-3) var(--space-3);
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+}
 
 .barre-table {
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: var(--space-4);
-  padding: var(--space-3) var(--space-4); margin-bottom: var(--space-4);
+  flex-wrap: wrap; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
   background: var(--surface-card); border: 1px solid var(--border);
   border-radius: var(--radius-lg);
 }
-.bloc-code { display: flex; flex-direction: column; gap: 4px; }
+.bloc-code { display: flex; flex-direction: column; gap: 2px; }
 .code-ligne { display: flex; align-items: center; gap: var(--space-3); }
-.code {
-  font-family: var(--font-mono); font-size: var(--text-xl);
-  letter-spacing: 0.22em; color: var(--text-strong);
-}
+.code { font-family: var(--font-mono); font-size: var(--text-xl); letter-spacing: 0.22em; color: var(--text-strong); }
 .bloc-infos { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.bloc-boutons { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
 .btn-mini {
   font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium);
   padding: 7px 13px; border-radius: var(--radius-pill);
   border: 1px solid var(--border-strong); background: var(--surface-card);
   color: var(--text-body);
-  transition: color var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
 .btn-mini:hover { color: var(--accent); border-color: var(--border-accent); }
 .btn-mini-danger:hover { color: var(--red-500); border-color: var(--red-500); }
+.btn-mini[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
-/* ============================================================
-   PLATEAU
-   ============================================================ */
+/* ---------- Plateau : panneaux + tapis ---------- */
 
+/* Les colonnes latérales sont dimensionnées par leur contenu : masquer un
+   panneau (`hidden`) fait disparaître sa piste, sans laisser de vide.
+   Chaque élément est assigné à sa colonne, sinon le placement automatique
+   glisse le tapis dans une piste `auto` dès qu'un panneau disparaît — et sa
+   largeur, définie en pourcentage, s'y effondre. */
 .plateau {
-  display: grid; grid-template-columns: minmax(0, 1fr) 300px;
-  gap: var(--space-5); align-items: start;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  min-height: 0;
 }
+.panneau-force   { grid-column: 1; }
+.tapis-enveloppe { grid-column: 2; }
+.panneau-journal { grid-column: 3; }
 
-.tapis-enveloppe { min-width: 0; }
+.panneau {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4);
+  display: flex; flex-direction: column; gap: var(--space-2);
+  min-height: 0; overflow: hidden;
+}
+.panneau-force { width: 236px; }
+.panneau-journal { width: 288px; }
 
-/* Le tapis : une ellipse sombre cerclée d'un liseré de marque. */
+.tapis-enveloppe { min-width: 0; min-height: 0; display: grid; place-items: center; }
+
+/* Le tapis : une ellipse sombre cerclée d'un liseré de marque, qui
+   occupe toute la place que la grille lui laisse. */
 .tapis {
   position: relative;
-  aspect-ratio: 16 / 10;
-  min-height: 380px;
+  width: 100%; height: 100%;
+  max-width: 1500px;
   border-radius: 50% / 46%;
   background:
     radial-gradient(120% 90% at 50% 12%, rgba(234, 88, 12, 0.10), transparent 55%),
@@ -214,8 +244,6 @@ footer a:hover { color: var(--accent); }
     var(--tapis-fond);
   border: 1px solid var(--tapis-liseré);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--shadow-lg);
-  /* Marge intérieure pour que les sièges du bord ne débordent pas. */
-  padding: 6%;
 }
 
 /* Fin liseré de marque qui suit l'ellipse */
@@ -232,7 +260,7 @@ footer a:hover { color: var(--accent); }
 .centre {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
-  width: min(88%, 460px);
+  width: min(88%, 620px);
 }
 
 .annonce {
@@ -241,7 +269,7 @@ footer a:hover { color: var(--accent); }
   color: var(--text-faint); text-align: center; min-height: 1.2em;
 }
 
-.board { display: flex; gap: 8px; justify-content: center; }
+.board { display: flex; gap: 10px; justify-content: center; --hauteur-carte: var(--carte-board); }
 
 .pot {
   font-family: var(--font-mono); font-size: var(--text-sm);
@@ -251,7 +279,9 @@ footer a:hover { color: var(--accent); }
 }
 .pot b { color: var(--accent); font-weight: var(--weight-semibold); }
 
-/* ---------- Cartes ---------- */
+/* ============================================================
+   CARTES
+   ============================================================ */
 
 .carte {
   width: calc(var(--hauteur-carte) * 0.70);
@@ -267,45 +297,76 @@ footer a:hover { color: var(--accent); }
   font-weight: var(--weight-bold);
   line-height: 1;
   user-select: none; flex: none;
+  transition: box-shadow var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-out);
 }
 .carte .valeur { font-size: calc(var(--hauteur-carte) * 0.30); }
 .carte .couleur { font-size: calc(var(--hauteur-carte) * 0.26); margin-top: 2px; }
 .carte.rouge { color: var(--carte-rouge); }
 
-/* Emplacement de carte communautaire pas encore retournée */
-.carte.vide {
-  background: transparent; border: 1px dashed var(--border-strong);
-  box-shadow: none;
-}
+.carte.vide { background: transparent; border: 1px dashed var(--border-strong); box-shadow: none; }
 
-/* Dos de carte : le dégradé de marque */
-.carte.dos {
-  background: var(--carte-dos); border-color: transparent;
-  position: relative; overflow: hidden;
-}
+.carte.dos { background: var(--carte-dos); border-color: transparent; position: relative; overflow: hidden; }
 .carte.dos::after {
   content: ""; position: absolute; inset: 12%;
   border-radius: calc(var(--hauteur-carte) * 0.06);
   border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-/* Carte retenue dans la meilleure combinaison à l'abattage */
+/* Carte de la combinaison gagnante, à l'abattage */
 .carte.retenue { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Arrivée des cartes communes */
-@keyframes poser {
-  from { opacity: 0; transform: translateY(-10px) rotate(-4deg); }
-  to   { opacity: 1; transform: none; }
+/* Carte qui compose VOTRE meilleure main du moment. Violet, pour ne pas
+   se confondre avec l'orange de l'abattage. */
+.carte.combinee {
+  outline: 2px solid var(--accent-2); outline-offset: 2px;
+  box-shadow: 0 0 14px -2px var(--accent-2), var(--shadow-sm);
+  transform: translateY(-3px);
 }
-.board .carte { animation: poser var(--dur-base) var(--ease-out) both; }
 
-/* ---------- Sièges ---------- */
+/* ---------- Retournement des cartes communes ---------- */
+
+.carte-boite {
+  width: calc(var(--hauteur-carte) * 0.70);
+  height: var(--hauteur-carte);
+  perspective: 900px;
+  flex: none;
+}
+.carte-pivot {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  /* Le dos fait face au joueur au départ ; l'animation ramène la
+     carte à plat, ce qui la retourne réellement dans l'espace. */
+  transform: rotateY(180deg);
+  animation: retourner 620ms var(--ease-out) forwards;
+}
+.carte-pivot > .carte {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  margin: 0;
+}
+.carte-pivot > .face-dos { transform: rotateY(180deg); }
+
+@keyframes retourner {
+  from { transform: rotateY(180deg) translateY(-10px); }
+  60%  { transform: rotateY(20deg) translateY(0); }
+  to   { transform: rotateY(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-pivot { animation: none; transform: none; }
+  .carte-pivot > .face-dos { display: none; }
+}
+
+/* ============================================================
+   SIÈGES
+   ============================================================ */
 
 .sieges { position: absolute; inset: 0; pointer-events: none; }
 
 .siege {
   position: absolute; transform: translate(-50%, -50%);
-  width: 148px; pointer-events: auto;
+  width: clamp(96px, 11vw, 158px); pointer-events: auto;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 
@@ -320,13 +381,27 @@ footer a:hover { color: var(--accent); }
 .siege.pos-4 { left: 86%;   top: 31%; }
 .siege.pos-5 { left: 86%;   top: 68%; }
 
+/* Chaque siège est orienté vers le centre du tapis : l'étiquette du joueur
+   reste du côté du bord, ses cartes et son jeton de mise regardent le pot.
+   L'ordre DOM est cartes / boîte / action ; il convient tel quel aux sièges
+   du bas, et s'inverse pour ceux du haut. */
+.siege.pos-0 .siege-mise,
+.siege.pos-1 .siege-mise,
+.siege.pos-5 .siege-mise { order: -1; }
+
+.siege.pos-2 .siege-cartes,
+.siege.pos-3 .siege-cartes,
+.siege.pos-4 .siege-cartes { order: 3; }
+.siege.pos-2 .siege-mise,
+.siege.pos-3 .siege-mise,
+.siege.pos-4 .siege-mise { order: 4; }
+
 .siege-boite {
-  width: 100%;
+  position: relative; width: 100%;
   background: var(--siege-fond);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 8px 10px;
-  text-align: center;
+  padding: 8px 10px; text-align: center;
   box-shadow: var(--shadow-sm);
   transition: border-color var(--dur-base) var(--ease-out),
               box-shadow var(--dur-base) var(--ease-out);
@@ -336,43 +411,26 @@ footer a:hover { color: var(--accent); }
   color: var(--text-strong);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.siege-tapis {
-  font-family: var(--font-mono); font-size: var(--text-xs);
-  color: var(--text-muted); margin-top: 2px;
-}
+.siege-tapis { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
 
-/* Le joueur dont c'est le tour */
-.siege.actif .siege-boite {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-accent);
-}
+.siege.actif .siege-boite { border-color: var(--accent); box-shadow: var(--shadow-accent); }
 .siege.couche { opacity: 0.42; }
 .siege.absent .siege-nom::after { content: " ⚠"; color: var(--amber-500); }
 .siege.moi .siege-boite { border-color: var(--accent-2); }
 
-/* Siège libre : bouton pour s'y asseoir */
 .siege-libre {
   width: 100%; padding: 12px 10px;
   border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
   background: transparent; color: var(--text-faint);
   font-family: var(--font-mono); font-size: var(--text-xs);
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
-  transition: color var(--dur-fast) var(--ease-out),
-              border-color var(--dur-fast) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
 .siege-libre:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
 .siege-libre:disabled { cursor: default; opacity: 0.5; }
 
-.siege-cartes { display: flex; gap: 4px; min-height: calc(var(--hauteur-carte) * 0.62); }
-.siege-cartes .carte { --hauteur-carte: 44px; }
-.siege.moi .siege-cartes .carte { --hauteur-carte: 62px; }
-
-/* Jeton de mise posé devant le siège, côté centre du tapis : au-dessus pour
-   les sièges du bas, en dessous pour les autres — comme des jetons poussés
-   vers le pot. Cela évite aussi que la pile déborde sous l'ellipse. */
-.siege.pos-0 .siege-mise,
-.siege.pos-1 .siege-mise,
-.siege.pos-5 .siege-mise { order: -1; }
+.siege-cartes { display: flex; gap: 4px; min-height: calc(var(--carte-siege) * 0.62); }
+.siege.moi .siege-cartes { --hauteur-carte: var(--carte-mienne); gap: 6px; }
 
 .siege-mise {
   font-family: var(--font-mono); font-size: var(--text-xs);
@@ -381,14 +439,12 @@ footer a:hover { color: var(--accent); }
   color: var(--accent); white-space: nowrap;
 }
 
-/* Dernière action annoncée */
 .siege-action {
   font-family: var(--font-mono); font-size: 10px;
   letter-spacing: var(--tracking-wide); text-transform: uppercase;
   color: var(--text-faint); min-height: 1em;
 }
 
-/* Pastille du bouton donneur */
 .jeton-bouton {
   position: absolute; top: -6px; right: -6px;
   width: 22px; height: 22px; border-radius: 50%;
@@ -397,39 +453,59 @@ footer a:hover { color: var(--accent); }
   font-family: var(--font-display); font-size: 11px; font-weight: var(--weight-bold);
   display: grid; place-items: center;
 }
-.siege-boite { position: relative; }
 
-/* Gain annoncé en fin de main */
-.siege-gain {
-  font-family: var(--font-mono); font-size: var(--text-xs);
-  color: var(--gain); font-weight: var(--weight-semibold);
-}
-.siege.gagnant .siege-boite {
-  border-color: var(--gain);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.22);
-}
-.siege-main {
-  font-size: 10px; color: var(--text-muted); text-align: center;
-  max-width: 148px; line-height: 1.3;
-}
+.siege-gain { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gain); font-weight: var(--weight-semibold); }
+.siege.gagnant .siege-boite { border-color: var(--gain); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.22); }
+.siege-main { font-size: 10px; color: var(--text-muted); text-align: center; max-width: 100%; line-height: 1.3; }
 
-/* ---------- Panneau latéral ---------- */
+/* ============================================================
+   PANNEAU « FORCE DES MAINS »
+   ============================================================ */
 
-.panneau {
-  background: var(--surface-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: var(--space-4);
-  display: flex; flex-direction: column; gap: var(--space-3);
-  max-height: 560px;
+.liste-force {
+  list-style: none; margin: 0; padding: 0;
+  overflow-y: auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 2px;
 }
+/* Rangées volontairement denses : les dix combinaisons doivent tenir sans
+   défilement, sinon la paire et la hauteur — les plus fréquentes — passent
+   sous le pli. */
+.rang-main {
+  padding: 3px 7px; border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.rang-titre {
+  display: flex; align-items: baseline; gap: 6px;
+  font-size: var(--text-xs); color: var(--text-body);
+}
+.rang-titre b { font-weight: var(--weight-semibold); color: var(--text-strong); }
+.rang-num {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-faint);
+  min-width: 1.2em;
+}
+.rang-cartes { display: flex; gap: 2px; margin-top: 3px; --hauteur-carte: var(--carte-mini); }
+.rang-cartes .carte { border-radius: 3px; box-shadow: none; }
+.rang-cartes .carte .valeur { font-size: 11px; }
+.rang-cartes .carte .couleur { font-size: 9px; margin-top: 0; }
+
+/* La combinaison que vous tenez en ce moment */
+.rang-main.courante {
+  background: var(--accent-2-soft);
+  border-color: var(--accent-2);
+}
+.rang-main.courante .rang-titre b { color: var(--accent-2); }
+
+/* ---------- Journal ---------- */
+
 .journal {
   list-style: none; margin: 0; padding: 0;
-  overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+  overflow-y: auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 6px;
   font-size: var(--text-sm); color: var(--text-body);
 }
-.journal li {
-  padding-bottom: 6px; border-bottom: 1px solid var(--border);
-  line-height: var(--leading-normal);
-}
+.journal li { padding-bottom: 6px; border-bottom: 1px solid var(--border); line-height: var(--leading-normal); }
 .journal li:last-child { border-bottom: none; }
 .journal li.separateur {
   font-family: var(--font-mono); font-size: var(--text-xs);
@@ -442,35 +518,38 @@ footer a:hover { color: var(--accent); }
    ZONE D'ACTION
    ============================================================ */
 
-.zone-action {
-  margin: var(--space-5) 0 var(--space-6);
-  display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+.zone-action { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+
+.bandeau-main { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; justify-content: center; min-height: 30px; }
+
+/* Rappel permanent de votre meilleure main du moment */
+.ma-main {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px; border-radius: var(--radius-pill);
+  background: var(--accent-2-soft); border: 1px solid var(--accent-2);
+  color: var(--accent-2);
+  font-size: var(--text-sm); font-weight: var(--weight-semibold);
+}
+.ma-main small {
+  font-family: var(--font-mono); font-size: 10px; font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.message-action {
-  font-family: var(--font-mono); font-size: var(--text-sm);
-  color: var(--text-muted); text-align: center; min-height: 1.4em;
-}
+.message-action { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-muted); text-align: center; }
 
-.actions { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: var(--space-3); }
+.actions { width: 100%; max-width: 920px; display: flex; flex-direction: column; gap: var(--space-2); }
 
 .boutons-action { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
-
-.btn-action {
-  flex: 1 1 130px; min-width: 120px; justify-content: center;
-  font-size: var(--text-base);
-}
+.btn-action { flex: 1 1 150px; min-width: 130px; font-size: var(--text-base); }
 .btn-action:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-coucher { background: var(--surface-card); color: var(--text-body); border: 1px solid var(--border-strong); }
 .btn-coucher:hover:not(:disabled) { color: var(--red-500); border-color: var(--red-500); }
-.btn-passer, .btn-suivre {
-  background: var(--surface-card); color: var(--text-strong); border: 1px solid var(--border-strong);
-}
+.btn-passer, .btn-suivre { background: var(--surface-card); color: var(--text-strong); border: 1px solid var(--border-strong); }
 .btn-passer:hover:not(:disabled), .btn-suivre:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .btn-relancer { background: var(--brand-gradient); color: #fff; border: 1px solid transparent; }
 .btn-relancer:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-accent); }
 
-/* Pendule du temps de réflexion */
 .pendule { height: 4px; border-radius: var(--radius-pill); background: var(--surface-sunken); overflow: hidden; }
 .pendule span {
   display: block; height: 100%; width: 100%;
@@ -479,21 +558,45 @@ footer a:hover { color: var(--accent); }
 }
 .pendule.urgent span { background: var(--red-500); }
 
-.zone-mise {
-  display: flex; flex-direction: column; gap: var(--space-2);
-  padding: var(--space-3); border-radius: var(--radius-md);
-  background: var(--surface-card); border: 1px solid var(--border);
+/* ---------- Choix du montant ---------- */
+
+/* Raccourcis et réglage fin partagent une ligne quand la largeur le permet ;
+   ils se replient l'un sous l'autre sur écran étroit. Une rangée gagnée ici
+   est une rangée rendue au tapis. */
+.zone-mise { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+
+.raccourcis { flex: 1 1 400px; display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+
+/* Chaque raccourci annonce sa fraction ET le montant en jetons : on choisit
+   une somme, pas un pourcentage à convertir de tête. */
+.jeton-mise {
+  flex: 1 1 82px; min-width: 74px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 10px; border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong); background: var(--surface-card);
+  color: var(--text-body); font-family: var(--font-sans);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
 }
-.zone-mise input[type="range"] { width: 100%; accent-color: var(--accent); }
-.mise-details { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
-.mise-details input[type="number"] {
-  width: 130px; font-family: var(--font-mono); font-size: var(--text-base);
+.jeton-mise b { font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--text-muted); }
+.jeton-mise span { font-family: var(--font-mono); font-size: var(--text-base); color: var(--text-strong); }
+.jeton-mise:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); }
+.jeton-mise:hover:not(:disabled) span { color: var(--accent); }
+.jeton-mise[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.jeton-mise[aria-pressed="true"] span { color: var(--accent); }
+.jeton-mise:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.mise-fine { flex: 1 1 240px; display: flex; align-items: center; gap: var(--space-3); }
+.mise-fine input[type="range"] { flex: 1; accent-color: var(--accent); min-width: 0; }
+.mise-fine input[type="number"] {
+  width: 120px; flex: none;
+  font-family: var(--font-mono); font-size: var(--text-base);
   padding: 8px 12px; border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong); background: var(--bg-page);
   color: var(--text-strong);
 }
-.mise-details input[type="number"]:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring-accent); }
-.raccourcis { display: flex; gap: 6px; flex-wrap: wrap; }
+.mise-fine input[type="number"]:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring-accent); }
 
 .actions-hote, .actions-joueur { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
 
@@ -514,63 +617,123 @@ footer a:hover { color: var(--accent); }
   box-shadow: var(--shadow-lg);
 }
 .modale h2 { font-size: var(--text-2xl); margin-bottom: var(--space-4); }
-.modale h3 {
-  font-size: var(--text-base); margin: var(--space-5) 0 var(--space-2);
-  color: var(--accent);
-}
+.modale h3 { font-size: var(--text-base); margin: var(--space-5) 0 var(--space-2); color: var(--accent); }
 .modale p, .modale li { color: var(--text-body); font-size: var(--text-sm); margin-bottom: var(--space-2); }
 .modale ul, .modale ol { padding-left: var(--space-5); }
-.modale .petit { color: var(--text-faint); font-size: var(--text-xs); }
-.liste-mains li { margin-bottom: 4px; }
-.modale .btn { margin-top: var(--space-5); width: 100%; justify-content: center; }
+.modale .btn { margin-top: var(--space-5); width: 100%; }
 
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 
+/* Écrans peu hauts (portables 720p) : la barre d'action est ce qui prive le
+   tapis de sa place, on la resserre plutôt que d'écraser la table. */
+@media (max-height: 820px) {
+  :root {
+    --carte-siege:  clamp(32px, 5.4vh, 48px);
+    --carte-board:  clamp(40px, 6.8vh, 68px);
+    --carte-mienne: clamp(42px, 7vh, 66px);
+    --carte-mini:   20px;
+  }
+  /* L'ellipse est plus basse : les sièges du haut et du bas rentrent. */
+  .siege.pos-0 { top: 79%; }
+  .siege.pos-3 { top: 21%; }
+  .zone-action { gap: 6px; }
+  .actions { gap: 6px; }
+  .centre { gap: 6px; }
+  .board { gap: 6px; }
+  .annonce { min-height: 1em; }
+  .bandeau-main { min-height: 26px; }
+  .jeton-mise { padding: 4px 8px; }
+  .jeton-mise span { font-size: var(--text-sm); }
+  .btn-action { height: 42px; }
+  .barre-table { padding: 5px var(--space-3); }
+  .rang-main { padding: 3px 6px; }
+  .rang-cartes { margin-top: 2px; }
+  .entete { padding: var(--space-2) var(--space-4); }
+}
+
+/* Écrans moyens : le journal passe en second, la force des mains reste. */
+@media (max-width: 1280px) {
+  .panneau-force { width: 200px; }
+  .panneau-journal { width: 240px; }
+}
+
 @media (max-width: 1080px) {
-  .plateau { grid-template-columns: 1fr; }
-  .panneau { max-height: 220px; order: 2; }
-  .siege { width: 128px; }
-  .siege-main { max-width: 128px; }
+  /* Plus la place pour deux colonnes : les panneaux deviennent des
+     tiroirs, ouverts à la demande par la barre du haut. */
+  .panneau-journal { display: none; }
+  .panneau-force { width: 184px; }
+}
+
+@media (max-width: 860px) {
+  .panneau-force { display: none; }
+
+  /* Ouverts explicitement, les panneaux se superposent au tapis. */
+  .plateau.force-ouverte .panneau-force,
+  .plateau.journal-ouvert .panneau-journal {
+    display: flex;
+    position: absolute; z-index: 20;
+    top: 0; bottom: 0; width: min(80vw, 300px);
+    box-shadow: var(--shadow-lg);
+  }
+  .plateau.force-ouverte .panneau-force { left: 0; }
+  .plateau.journal-ouvert .panneau-journal { right: 0; }
+  .plateau { position: relative; }
 }
 
 @media (max-width: 760px) {
   .ecran { padding: 0 var(--space-3); }
   .entete { padding: var(--space-3); }
+  .entete-gauche .ds-eyebrow { display: none; }
 
-  /* Sur mobile le tapis s'allonge en hauteur : les sièges tiennent
-     mieux sur les flancs que sur les bords haut et bas. */
-  .tapis { aspect-ratio: 3 / 4; min-height: 480px; padding: 10% 4%; }
-  .tapis, .tapis::before { border-radius: 46% / 50%; }
-
-  :root { --hauteur-carte: 54px; }
-  .board { gap: 5px; }
-  .siege { width: 104px; }
-  .siege-main { max-width: 104px; }
-  .siege-boite { padding: 6px 7px; }
-  .siege-nom { font-size: var(--text-xs); }
-  .siege-cartes .carte { --hauteur-carte: 34px; }
-  .siege.moi .siege-cartes .carte { --hauteur-carte: 52px; }
+  /* Six sièges autour d'une ellipse de 330 px : tout doit rétrécir pour que
+     les cartes du centre ne viennent pas sur celles des flancs. */
+  :root {
+    --carte-siege:  26px;
+    --carte-board:  clamp(36px, 5.6vh, 46px);
+    --carte-mienne: clamp(42px, 6.4vh, 56px);
+  }
+  .centre { width: 94%; }
+  .board { gap: 4px; }
 
   /* L'ellipse portrait est plus étroite : on resserre les flancs. Les sièges
      du haut et du bas restent franchement à l'intérieur, sinon leurs cartes
      débordent sur la barre d'outils ou sous le tapis. */
+  .siege { width: clamp(70px, 20vw, 88px); }
   .siege.pos-0 { left: 50%; top: 86%; }
-  .siege.pos-1 { left: 18%; top: 70%; }
-  .siege.pos-2 { left: 18%; top: 30%; }
+  .siege.pos-1 { left: 15%; top: 70%; }
+  .siege.pos-2 { left: 15%; top: 30%; }
   .siege.pos-3 { left: 50%; top: 16%; }
-  .siege.pos-4 { left: 82%; top: 30%; }
-  .siege.pos-5 { left: 82%; top: 70%; }
+  .siege.pos-4 { left: 85%; top: 30%; }
+  .siege.pos-5 { left: 85%; top: 70%; }
+  .siege-nom { font-size: 11px; }
+  .siege-boite { padding: 5px 6px; }
 
-  .barre-table { flex-direction: column; align-items: stretch; gap: var(--space-3); }
-  .btn-action { flex: 1 1 45%; min-width: 0; font-size: var(--text-sm); padding: 12px 8px; }
-  .mise-details input[type="number"] { width: 100%; }
-}
+  /* La barre du haut tenait sur trois rangées : autant de hauteur volée
+     au tapis. On resserre les boutons et on retire les libellés superflus. */
+  .barre-table { padding: 6px var(--space-3); gap: var(--space-2); }
+  .bloc-infos { display: none; }
+  .bloc-code .ds-eyebrow { display: none; }
+  .code { font-size: var(--text-base); }
+  .btn-mini { padding: 5px 9px; font-size: 11px; }
+  .btn-action { flex: 1 1 45%; min-width: 0; font-size: var(--text-sm); height: 42px; }
 
-@media (max-width: 420px) {
-  .tapis { min-height: 430px; }
-  :root { --hauteur-carte: 46px; }
-  .siege { width: 88px; }
-  .siege-main { max-width: 88px; }
+  /* Trois propositions suffisent sur un écran étroit : elles tiennent sur
+     une seule ligne, et le curseur reste là pour tout montant intermédiaire. */
+  .jeton-mise[data-fraction="0.25"],
+  .jeton-mise[data-fraction="0.75"] { display: none; }
+  .jeton-mise { flex: 1 1 30%; min-width: 0; padding: 4px 6px; }
+  .jeton-mise span { font-size: var(--text-sm); }
+  .mise-fine input[type="number"] { width: 84px; }
+
+  .zone-action { gap: 5px; }
+  .actions { gap: 5px; }
+  .bandeau-main { gap: var(--space-2); min-height: 0; }
+  .ma-main { padding: 3px 10px; font-size: var(--text-xs); }
+  .message-action { font-size: var(--text-xs); }
+
+  /* Tapis plus court : le siège du bas remonte pour ne pas en sortir. */
+  .siege.pos-0 { top: 78%; }
+  .siege.pos-3 { top: 22%; }
 }

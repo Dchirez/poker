@@ -86,10 +86,45 @@ violet de marque, échelle typographique, rayons, ombres, thèmes clair et sombr
 couleur en dur hors des deux cas que le jeu impose — le rouge des cœurs et carreaux, le
 vert des gains.
 
+L'écran de jeu occupe toute la fenêtre : barre d'informations, puis une rangée qui
+s'étire — force des mains à gauche, tapis au centre, déroulé à droite — puis la barre
+d'action. Rien ne défile, le tapis prend tout ce que les autres éléments lui laissent.
+Les deux panneaux latéraux se replient d'un clic, ce qui rend leur largeur au tapis ;
+sous 860 px ils deviennent des tiroirs qui se superposent à la table.
+
 La table pivote autour du joueur local, toujours assis en bas : le voisin de gauche,
-c'est-à-dire le suivant à parler, est toujours en bas à gauche de l'écran. Les mises
-glissent vers le centre du tapis. En portrait, l'ellipse bascule à la verticale et les
-sièges se resserrent sur les flancs.
+c'est-à-dire le suivant à parler, est toujours en bas à gauche de l'écran. Chaque siège
+est orienté vers le centre — l'étiquette du joueur du côté du bord, ses cartes et son
+jeton de mise vers le pot. En portrait, l'ellipse bascule à la verticale.
+
+### Ce qui se passe pendant la donne
+
+Les cartes communes arrivent en **se retournant** : deux faces dans un pivot 3D, dos
+vers le joueur au départ. Les trois cartes du flop se retournent en cascade, décalées de
+130 ms. Le rendu se rejouant à chaque message reçu, la vue retient combien de cartes ont
+déjà été montrées et n'anime que les nouvelles — sinon le board se retournerait à chaque
+action d'un adversaire.
+
+Votre **meilleure main du moment** est recalculée à chaque carte du centre. Elle
+s'affiche sous le tapis, la combinaison correspondante s'allume dans la colonne de
+gauche, et les cartes qui la portent — les vôtres comme celles du board — sont cerclées
+de violet. Seules les cartes *porteuses* sont marquées, kickers exclus : surligner les
+cinq cartes d'une simple paire éclairerait presque tout le tapis et ne dirait plus rien.
+
+Ce calcul est purement local, à partir des seules cartes que le client possède. C'est ce
+qui permet à chacun de voir sa main sans jamais voir celle des autres.
+
+### Choisir un montant
+
+Les raccourcis de mise annoncent **la somme en jetons**, pas une fraction à convertir de
+tête : « ½ pot / 490 ». La relance « pot » suit la convention usuelle — on suit d'abord,
+puis on mise le pot ainsi constitué. Les montants sont bornés par la relance minimum et
+par le tapis ; quand plusieurs fractions retombent sur la même valeur, les doublons sont
+neutralisés plutôt qu'alignés à l'identique.
+
+Le bouton de validation affiche ce qu'il engage (« Relancer à 240 », « Tapis 1 900 ») :
+plus de relance à l'aveugle. Curseur, saisie numérique et raccourcis décrivent le même
+montant et se synchronisent.
 
 ## Développement
 
