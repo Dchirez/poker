@@ -1,0 +1,410 @@
+/* ============================================================
+   DESIGN SYSTEM — Damien Chirez
+   Généré depuis le portfolio (dchirez.github.io) :
+   src/styles/tokens/*.css + primitives partagées.
+   Ne pas éditer à la main : modifier le portfolio puis régénérer.
+   ============================================================ */
+
+/* ============================================================
+   COLORS — Damien Chirez Portfolio Design System
+   Two accents: Orange (primary, energy) + Violet (secondary, depth)
+   Warm-neutral "ink" scale. Light + dark themes.
+   ============================================================ */
+
+:root {
+  /* --- Brand: Orange (primary accent) --- */
+  --orange-50:  #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c; /* core */
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+  --orange-900: #7c2d12;
+
+  /* --- Brand: Violet (secondary accent) --- */
+  --violet-50:  #f5f3ff;
+  --violet-100: #ede9fe;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed; /* core */
+  --violet-700: #6d28d9;
+  --violet-800: #5b21b6;
+  --violet-900: #4c1d95;
+
+  /* --- Neutral: Ink (zinc) --- */
+  --ink-0:   #ffffff;
+  --ink-50:  #fafafa;
+  --ink-100: #f4f4f5;
+  --ink-200: #e4e4e7;
+  --ink-300: #d4d4d8;
+  --ink-400: #a1a1aa;
+  --ink-500: #71717a;
+  --ink-600: #52525b;
+  --ink-700: #3f3f46;
+  --ink-800: #27272a;
+  --ink-900: #18181b;
+  --ink-950: #09090b;
+
+  /* --- Signal --- */
+  --green-500: #16a34a;
+  --green-400: #22c55e;
+  --red-500:   #dc2626;
+  --amber-500: #f59e0b;
+
+  /* === Semantic aliases — LIGHT (default) === */
+  --accent:           var(--orange-600);
+  --accent-hover:     var(--orange-700);
+  --accent-soft:      var(--orange-50);
+  --accent-on:        #ffffff;
+  --accent-2:         var(--violet-600);
+  --accent-2-hover:   var(--violet-700);
+  --accent-2-soft:    var(--violet-50);
+
+  /* brand gradient: orange -> violet */
+  --brand-gradient: linear-gradient(110deg, var(--orange-600) 0%, var(--violet-600) 100%);
+  --brand-gradient-soft: linear-gradient(110deg, var(--orange-500) 0%, var(--violet-500) 100%);
+
+  --bg-page:        var(--ink-50);
+  --bg-page-alt:    var(--ink-100);
+  --surface-card:   var(--ink-0);
+  --surface-raised: var(--ink-0);
+  --surface-sunken: var(--ink-100);
+
+  --text-strong:  var(--ink-900);
+  --text-body:    var(--ink-700);
+  --text-muted:   var(--ink-500);
+  --text-faint:   var(--ink-400);
+  --text-on-accent: #ffffff;
+
+  --border:        var(--ink-200);
+  --border-strong: var(--ink-300);
+  --border-accent: var(--orange-300);
+
+  --status-online: var(--green-500);
+
+  /* Selection */
+  --selection-bg: var(--orange-200);
+}
+
+/* === DARK theme === */
+.dark, :root.dark, [data-theme="dark"] {
+  --accent:         var(--orange-500);
+  --accent-hover:   var(--orange-400);
+  --accent-soft:    rgba(234, 88, 12, 0.14);
+  --accent-2:       var(--violet-400);
+  --accent-2-hover: var(--violet-300);
+  --accent-2-soft:  rgba(124, 58, 237, 0.18);
+
+  --brand-gradient: linear-gradient(110deg, var(--orange-500) 0%, var(--violet-400) 100%);
+
+  --bg-page:        var(--ink-950);
+  --bg-page-alt:    #0d0d10;
+  --surface-card:   var(--ink-900);
+  --surface-raised: var(--ink-800);
+  --surface-sunken: #101013;
+
+  --text-strong:  #fafafa;
+  --text-body:    var(--ink-300);
+  --text-muted:   var(--ink-400);
+  --text-faint:   var(--ink-500);
+
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-accent: var(--orange-500);
+
+  --selection-bg: rgba(234, 88, 12, 0.35);
+}
+/* ============================================================
+   TYPOGRAPHY — families, scale, weights, tracking
+   ============================================================ */
+
+:root {
+  /* Families */
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale (1.250 major-third-ish, tuned) */
+  --text-xs:   0.75rem;   /* 12 */
+  --text-sm:   0.875rem;  /* 14 */
+  --text-base: 1rem;      /* 16 */
+  --text-lg:   1.125rem;  /* 18 */
+  --text-xl:   1.375rem;  /* 22 */
+  --text-2xl:  1.75rem;   /* 28 */
+  --text-3xl:  2.25rem;   /* 36 */
+  --text-4xl:  3rem;      /* 48 */
+  --text-5xl:  3.75rem;   /* 60 */
+  --text-6xl:  4.75rem;   /* 76 */
+  --text-7xl:  6rem;      /* 96 */
+
+  /* Weights */
+  --weight-light:    300;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* Line heights */
+  --leading-tight:   1.05;
+  --leading-snug:    1.2;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;
+
+  /* Letter spacing */
+  --tracking-tighter: -0.04em;
+  --tracking-tight:   -0.02em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.04em;
+  --tracking-widest:  0.18em; /* eyebrows / mono labels */
+}
+/* ============================================================
+   SPACING, RADII, SHADOWS, MOTION, LAYOUT
+   ============================================================ */
+
+:root {
+  /* Spacing scale (4px base) */
+  --space-0:  0;
+  --space-1:  0.25rem;  /* 4 */
+  --space-2:  0.5rem;   /* 8 */
+  --space-3:  0.75rem;  /* 12 */
+  --space-4:  1rem;     /* 16 */
+  --space-5:  1.5rem;   /* 24 */
+  --space-6:  2rem;     /* 32 */
+  --space-7:  3rem;     /* 48 */
+  --space-8:  4rem;     /* 64 */
+  --space-9:  6rem;     /* 96 */
+  --space-10: 8rem;     /* 128 */
+
+  /* Radii */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   18px;
+  --radius-xl:   26px;
+  --radius-2xl:  36px;
+  --radius-pill: 999px;
+
+  /* Shadows — soft, layered, low-spread */
+  --shadow-xs:  0 1px 2px rgba(24, 24, 27, 0.06);
+  --shadow-sm:  0 2px 6px rgba(24, 24, 27, 0.07);
+  --shadow-md:  0 8px 24px -6px rgba(24, 24, 27, 0.12);
+  --shadow-lg:  0 20px 48px -12px rgba(24, 24, 27, 0.18);
+  --shadow-accent: 0 12px 32px -8px rgba(234, 88, 12, 0.45);
+  --shadow-violet: 0 12px 32px -8px rgba(124, 58, 237, 0.40);
+  --ring-accent: 0 0 0 3px rgba(234, 88, 12, 0.30);
+
+  /* Motion */
+  --ease-out:   cubic-bezier(0.22, 1, 0.36, 1);   /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);  /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --dur-fast:   140ms;  /* @kind other */
+  --dur-base:   240ms;  /* @kind other */
+  --dur-slow:   420ms;  /* @kind other */
+
+  /* Layout */
+  --container:   1200px;
+  --container-narrow: 880px;
+  --nav-height:  76px;
+}
+/* ============================================================
+   BASE — light reset + element defaults + helpers
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-body);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--selection-bg); }
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display);
+  color: var(--text-strong);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+  text-wrap: balance;
+}
+
+p { margin: 0; text-wrap: pretty; }
+
+a { color: inherit; text-decoration: none; }
+
+img { display: block; max-width: 100%; }
+
+button { font-family: inherit; cursor: pointer; }
+
+code, kbd, pre, .mono { font-family: var(--font-mono); }
+
+/* Eyebrow / kicker label — mono, tracked, uppercase */
+.ds-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Gradient text helper */
+.ds-gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+/* ============================================================
+   COMPONENTS — primitives partagées entre les sites
+   Reprises de src/styles/primitives.css + portfolio.css du portfolio.
+   ============================================================ */
+
+@keyframes ds-ping { 0% { transform: scale(1); opacity: .7 } 70%, 100% { transform: scale(2.4); opacity: 0 } }
+@keyframes ds-rise { from { opacity: 0; transform: translateY(22px) } to { opacity: 1; transform: none } }
+@keyframes ds-float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-14px) } }
+
+/* ---------- Layout ---------- */
+.ds-container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 28px; }
+.ds-container-narrow { max-width: var(--container-narrow); }
+.ds-section { padding: 96px 0; position: relative; }
+.ds-reveal { animation: ds-rise .7s var(--ease-out) both; }
+
+/* ---------- Titrage ---------- */
+.ds-h-section { font-family: var(--font-display); font-size: var(--text-4xl); font-weight: var(--weight-bold); color: var(--text-strong); letter-spacing: var(--tracking-tight); margin: 14px 0 0; }
+.ds-lead { font-size: var(--text-lg); color: var(--text-muted); line-height: var(--leading-relaxed); }
+.ds-accent-rule { width: 56px; height: 5px; border-radius: 3px; background: var(--accent); }
+
+/* ---------- Button ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-family: var(--font-sans); font-weight: 600; line-height: 1;
+  border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap;
+  text-decoration: none; border: 1.5px solid transparent;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-base), background var(--dur-base), border-color var(--dur-base);
+}
+.btn-full { width: 100%; }
+.btn-sm { height: 38px; padding: 0 16px; font-size: 14px; }
+.btn-md { height: 48px; padding: 0 22px; font-size: 16px; }
+.btn-lg { height: 56px; padding: 0 30px; font-size: 18px; }
+.btn-gradient { background: var(--brand-gradient); background-clip: padding-box; color: #fff; box-shadow: var(--shadow-accent); }
+.btn-gradient:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.btn-primary { background: var(--accent); color: var(--accent-on); }
+.btn-primary:hover { transform: translateY(-2px); background: var(--accent-hover); }
+.btn-secondary { background: var(--surface-card); color: var(--text-strong); border-color: var(--border-strong); }
+.btn-secondary:hover { transform: translateY(-2px); border-color: var(--accent); }
+.btn-ghost { background: transparent; color: var(--text-body); }
+.btn-ghost:hover { transform: translateY(-2px); background: var(--surface-sunken); }
+.btn:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
+
+/* ---------- Icon button ---------- */
+.icon-btn {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--surface-card);
+  color: var(--text-muted); cursor: pointer; transition: all var(--dur-fast);
+}
+.icon-btn:hover { color: var(--accent); border-color: var(--border-accent); transform: translateY(-1px); }
+
+/* ---------- Badge ---------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.04em;
+  text-transform: uppercase; border-radius: var(--radius-pill); line-height: 1; white-space: nowrap;
+}
+.badge-sm { font-size: 11px; padding: 3px 9px; }
+.badge-md { font-size: 12px; padding: 5px 12px; }
+.badge-accent  { background: var(--accent-soft); color: var(--accent); }
+.badge-violet  { background: var(--accent-2-soft); color: var(--accent-2); }
+.badge-neutral { background: var(--surface-sunken); color: var(--text-muted); }
+.badge-outline { background: transparent; color: var(--text-body); border: 1px solid var(--border-strong); }
+.badge-success { background: rgba(22, 163, 74, 0.13); color: var(--green-500); }
+
+/* ---------- Chip (filtre / sélecteur) ---------- */
+.fchip {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .03em;
+  padding: 8px 15px; border-radius: var(--radius-pill); border: 1px solid var(--border);
+  background: var(--surface-card); color: var(--text-muted); cursor: pointer;
+  transition: all var(--dur-fast); display: inline-flex; align-items: center; gap: 7px;
+}
+.fchip:hover { border-color: var(--border-accent); color: var(--text-strong); }
+.fchip.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+
+/* ---------- StatusPill ---------- */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 9px; padding: 7px 15px 7px 13px;
+  border-radius: var(--radius-pill); background: var(--surface-card); border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs); font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.03em; color: var(--text-body); white-space: nowrap;
+}
+.status-dot { position: relative; display: inline-flex; width: 9px; height: 9px; }
+.status-dot-ping { position: absolute; inset: 0; border-radius: 50%; background: var(--status-online); animation: ds-ping 1.8s var(--ease-out) infinite; opacity: 0.7; }
+.status-dot-core { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--status-online); }
+
+/* ---------- Card ---------- */
+.ds-card {
+  background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); padding: 22px;
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base), border-color var(--dur-base);
+}
+.ds-card-interactive { cursor: pointer; }
+.ds-card-interactive:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--border-accent); }
+
+/* ---------- Champs de formulaire ---------- */
+.field label { display: block; font-size: var(--text-sm); font-weight: 600; color: var(--text-body); margin-bottom: 8px; }
+.field input, .field textarea, .field select {
+  width: 100%; padding: 12px 15px; border-radius: var(--radius-md); border: 1px solid var(--border-strong);
+  background: var(--surface-sunken); color: var(--text-strong); font-family: var(--font-sans);
+  font-size: var(--text-base); transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring-accent); }
+.field textarea { resize: vertical; min-height: 120px; }
+
+/* ---------- Nav / footer ---------- */
+.ds-nav {
+  position: sticky; top: 0; z-index: 60; height: var(--nav-height);
+  background: color-mix(in srgb, var(--bg-page) 82%, transparent); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.ds-nav .inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.ds-brand { font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-xl); color: var(--text-strong); letter-spacing: var(--tracking-tight); }
+.ds-brand b { color: var(--accent); }
+.ds-nav-link { font-size: var(--text-sm); font-weight: 500; color: var(--text-muted); transition: color var(--dur-fast); }
+.ds-nav-link:hover, .ds-nav-link.active { color: var(--accent); }
+.ds-footer { margin-top: auto; border-top: 1px solid var(--border); padding: 40px 0; }
+.ds-footer .inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .ds-container { padding: 0 20px; }
+  .ds-section { padding: 72px 0; }
+  .ds-h-section { font-size: var(--text-3xl); }
+}
+@media (max-width: 600px) {
+  :root { --nav-height: 60px; }
+  .ds-container { padding: 0 16px; }
+  .ds-section { padding: 56px 0; }
+  .ds-h-section { font-size: var(--text-2xl); }
+  .ds-lead { font-size: var(--text-base); }
+}
