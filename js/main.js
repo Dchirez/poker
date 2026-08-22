@@ -495,19 +495,25 @@ for (const bouton of $("raccourcis").children) {
   });
 }
 
-/* Panneaux latéraux : masquables, et en tiroir sur petit écran.
-   La bascule part de la visibilité réelle du panneau plutôt que d'un
-   compteur interne : sinon, changer la taille de la fenêtre désynchronise
-   l'état supposé et l'état affiché, et le panneau refuse de revenir. */
+/* Panneaux latéraux : repliables, et en tiroir sur petit écran.
+   Sur grand écran on masque par `visibility` et non par `display` : la
+   colonne reste réservée, si bien que replier un panneau laisse un vide
+   sans déplacer ni redimensionner le tapis.
+   La bascule part de la visibilité réelle plutôt que d'un compteur interne :
+   sinon, changer la taille de la fenêtre désynchronise l'état supposé et
+   l'état affiché, et le panneau refuse de revenir. */
 function basculerPanneau(bouton, panneau, classe) {
+  const estVisible = (el) => {
+    const style = getComputedStyle(el);
+    return style.display !== "none" && style.visibility !== "hidden";
+  };
   bouton.addEventListener("click", () => {
-    const plateau = document.querySelector(".plateau");
-    const visible = !!panneau.offsetParent;
-    panneau.hidden = visible;
+    const ouvrir = !estVisible(panneau);
+    panneau.classList.toggle("replie", !ouvrir);
     // Sur petit écran, la classe fait passer le panneau en tiroir par-dessus
     // le tapis ; sur grand écran elle ne change rien, la poser est sans effet.
-    plateau.classList.toggle(classe, !visible);
-    bouton.setAttribute("aria-pressed", String(!visible));
+    document.querySelector(".plateau").classList.toggle(classe, ouvrir);
+    bouton.setAttribute("aria-pressed", String(ouvrir));
   });
 }
 basculerPanneau($("btnBasculerForce"), $("panneauForce"), "force-ouverte");

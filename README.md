@@ -89,8 +89,19 @@ vert des gains.
 L'écran de jeu occupe toute la fenêtre : barre d'informations, puis une rangée qui
 s'étire — force des mains à gauche, tapis au centre, déroulé à droite — puis la barre
 d'action. Rien ne défile, le tapis prend tout ce que les autres éléments lui laissent.
-Les deux panneaux latéraux se replient d'un clic, ce qui rend leur largeur au tapis ;
-sous 860 px ils deviennent des tiroirs qui se superposent à la table.
+
+Rien ne bouge non plus en cours de partie, et c'est délibéré :
+
+- les deux panneaux latéraux se replient d'un clic, mais **leur colonne reste
+  réservée**. Le tapis garde exactement sa taille et sa position, un vide remplace
+  simplement le panneau. Sous 860 px ils deviennent des tiroirs superposés à la table ;
+- la **barre d'action reste en place en permanence** et se contente de griser hors tour.
+  Les quatre actions sont toujours affichées, celles qui ne s'appliquent pas étant
+  désactivées plutôt que masquées, et la pendule s'efface sans quitter le flux. La
+  hauteur du bas de l'écran est ainsi constante d'un tour à l'autre.
+
+Hors tour, les raccourcis affichent « — » plutôt que les montants du coup précédent,
+qui se liraient à tort comme une proposition.
 
 La table pivote autour du joueur local, toujours assis en bas : le voisin de gauche,
 c'est-à-dire le suivant à parler, est toujours en bas à gauche de l'écran. Chaque siège
