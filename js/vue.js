@@ -359,52 +359,70 @@ export function montantRaccourci(o, fraction) {
 
 /* ---------- Barre d'action ---------- */
 
+/* La barre reste en place en permanence, seulement grisée quand ce n'est pas
+   votre tour : elle ne doit jamais disparaître ni changer de hauteur, sinon
+   tout le bas de l'écran sursaute à chaque action d'un adversaire. */
 function rendreActions(etat, contexte) {
-  const zone = $("actionsJeu");
   const message = $("messageAction");
   const o = etat.mesActions;
   const monTour = !!o;
 
-  zone.hidden = !monTour;
+  $("actionsJeu").classList.toggle("inactive", !monTour);
 
-  if (!monTour) {
-    if (etat.monSiege < 0) {
-      message.textContent = "Vous regardez la partie. Choisissez un siège libre pour jouer.";
-    } else if (etat.phase === "attente") {
-      message.textContent = etat.peutDemarrer
-        ? (contexte.estHote ? "À vous de distribuer." : "En attente de l'hôte…")
-        : "Il faut au moins deux joueurs avec des jetons.";
-    } else if (etat.tour >= 0 && etat.sieges[etat.tour]) {
-      message.textContent = "Au tour de " + etat.sieges[etat.tour].nom + "…";
-    } else {
-      message.textContent = "";
-    }
-    return;
+  if (monTour) {
+    message.textContent = "À vous de parler.";
+  } else if (etat.monSiege < 0) {
+    message.textContent = "Vous regardez la partie. Choisissez un siège libre pour jouer.";
+  } else if (etat.phase === "attente") {
+    message.textContent = etat.peutDemarrer
+      ? (contexte.estHote ? "À vous de distribuer." : "En attente de l'hôte…")
+      : "Il faut au moins deux joueurs avec des jetons.";
+  } else if (etat.tour >= 0 && etat.sieges[etat.tour]) {
+    message.textContent = "Au tour de " + etat.sieges[etat.tour].nom + "…";
+  } else {
+    message.textContent = "";
   }
 
-  message.textContent = "À vous de parler.";
+  // Les quatre actions restent affichées ; celles qui ne s'appliquent pas
+  // sont désactivées plutôt que masquées, pour que la barre garde sa forme.
+  $("btnCoucher").disabled = !monTour;
+  $("btnPasser").disabled = !monTour || !o.checker;
+  $("btnSuivre").disabled = !monTour || o.suivre <= 0;
+  $("btnSuivre").textContent = monTour && o.suivre > 0 ? "Suivre " + jetons(o.suivre) : "Suivre";
 
-  $("btnPasser").hidden = !o.checker;
-  $("btnSuivre").hidden = o.suivre <= 0;
-  $("btnSuivre").textContent = "Suivre " + jetons(o.suivre);
-  $("btnRelancer").hidden = !o.peutRelancer;
-  $("zoneMise").hidden = !o.peutRelancer;
-  if (!o.peutRelancer) return;
+  const peutMiser = monTour && o.peutRelancer;
+  $("btnRelancer").disabled = !peutMiser;
+
+  const curseur = $("curseurMise");
+  const saisie = $("saisieMise");
+  saisie.disabled = !peutMiser;
+  curseur.disabled = !peutMiser || o.miniRelance >= o.maxiRelance;
+
+  if (!peutMiser) {
+    // Hors tour, aucun montant n'a de sens : on ne laisse pas traîner les
+    // chiffres du coup précédent, qui se liraient comme une proposition.
+    for (const bouton of $("raccourcis").children) {
+      bouton.disabled = true;
+      bouton.querySelector("span").textContent = "—";
+      bouton.setAttribute("aria-pressed", "false");
+      delete bouton.dataset.montant;
+    }
+    saisie.value = "";
+    $("btnRelancer").textContent = "Relancer";
+    return;
+  }
 
   // Le curseur est borné par la relance minimum et le tapis. On ne le
   // réinitialise que si le contexte de mise a changé, pour ne pas effacer
   // la saisie du joueur à chaque message reçu.
-  const curseur = $("curseurMise");
-  const saisie = $("saisieMise");
   const memeContexte = curseur.min === String(o.miniRelance) && curseur.max === String(o.maxiRelance);
   curseur.min = o.miniRelance; curseur.max = o.maxiRelance;
   saisie.min = o.miniRelance; saisie.max = o.maxiRelance;
   curseur.step = Math.max(1, Math.round(etat.config.grosseBlinde / 2));
-  if (!memeContexte) {
+  if (!memeContexte || saisie.value === "") {
     curseur.value = o.miniRelance;
     saisie.value = o.miniRelance;
   }
-  curseur.disabled = o.miniRelance >= o.maxiRelance;
 
   // Chaque raccourci affiche la somme qu'il propose, en jetons. Les petites
   // fractions butent souvent sur la relance minimum et proposent alors toutes
@@ -425,7 +443,7 @@ function rendreActions(etat, contexte) {
 /* Le bouton de validation annonce le montant : plus de « relancer » à
    l'aveugle, on voit ce qu'on engage avant de cliquer. */
 export function majBoutonRelance(o) {
-  if (!o) return;
+  if (!o || !o.peutRelancer) { $("btnRelancer").textContent = "Relancer"; return; }
   const montant = Number($("saisieMise").value) || o.miniRelance;
   const bouton = $("btnRelancer");
   bouton.textContent = montant >= o.maxiRelance
@@ -487,8 +505,10 @@ export function rendrePendule(etat) {
   const pendule = $("pendule");
   const barre = $("penduleBarre");
   const actif = etat && etat.mesActions && etat.echeance > 0;
-  pendule.hidden = !actif;
-  if (!actif) return;
+  // La pendule s'efface sans disparaître : la retirer du flux ferait sauter
+  // toute la barre d'action de quelques pixels à chaque changement de tour.
+  pendule.classList.toggle("vide", !actif);
+  if (!actif) { barre.style.width = "0%"; return; }
 
   const total = etat.config.secondesParTour * 1000;
   const restant = Math.max(0, etat.echeance - Date.now());

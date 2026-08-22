@@ -129,8 +129,8 @@
     <div class="bloc-boutons">
       <button id="btnRecaver" class="btn-mini" type="button" hidden>Recaver</button>
       <button id="btnSeLever" class="btn-mini" type="button" hidden>Quitter mon siège</button>
-      <button id="btnBasculerForce" class="btn-mini" type="button">Combinaisons</button>
-      <button id="btnBasculerJournal" class="btn-mini" type="button">Déroulé</button>
+      <button id="btnBasculerForce" class="btn-mini" type="button" aria-pressed="true">Combinaisons</button>
+      <button id="btnBasculerJournal" class="btn-mini" type="button" aria-pressed="true">Déroulé</button>
       <button id="btnQuitter" class="btn-mini btn-mini-danger" type="button">Quitter</button>
     </div>
   </div>
@@ -168,10 +168,10 @@
       <div id="messageAction" class="message-action"></div>
     </div>
 
-    <div id="actionsJeu" class="actions" hidden>
-      <div class="pendule" id="pendule" hidden><span id="penduleBarre"></span></div>
+    <div id="actionsJeu" class="actions">
+      <div class="pendule" id="pendule"><span id="penduleBarre"></span></div>
 
-      <div id="zoneMise" class="zone-mise" hidden>
+      <div id="zoneMise" class="zone-mise">
         <div class="raccourcis" id="raccourcis">
           <button class="jeton-mise" data-fraction="0.25" type="button"><b>¼ pot</b><span></span></button>
           <button class="jeton-mise" data-fraction="0.5"  type="button"><b>½ pot</b><span></span></button>

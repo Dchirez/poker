@@ -201,7 +201,9 @@ footer a:hover { color: var(--accent); }
 }
 .btn-mini:hover { color: var(--accent); border-color: var(--border-accent); }
 .btn-mini-danger:hover { color: var(--red-500); border-color: var(--red-500); }
-.btn-mini[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+/* Les bascules de panneaux sont ouvertes par défaut : c'est l'état replié
+   qu'il faut signaler, pas l'état normal. */
+.btn-mini[aria-pressed="false"] { color: var(--text-faint); border-color: var(--border); }
 
 /* ---------- Plateau : panneaux + tapis ---------- */
 
@@ -228,6 +230,11 @@ footer a:hover { color: var(--accent); }
 }
 .panneau-force { width: 236px; }
 .panneau-journal { width: 288px; }
+
+/* Replier un panneau le rend invisible sans le retirer du flux : sa colonne
+   reste réservée, le tapis garde donc exactement sa taille et sa position.
+   C'est un espace vide qui remplace le panneau, pas un décalage de la table. */
+.panneau.replie { visibility: hidden; }
 
 .tapis-enveloppe { min-width: 0; min-height: 0; display: grid; place-items: center; }
 
@@ -539,6 +546,10 @@ footer a:hover { color: var(--accent); }
 .message-action { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-muted); text-align: center; }
 
 .actions { width: 100%; max-width: 920px; display: flex; flex-direction: column; gap: var(--space-2); }
+/* Hors tour, la barre reste à sa place et se contente de griser : ses
+   commandes sont désactivées, rien ne bouge d'un tour à l'autre. */
+.actions.inactive { --etat-inactif: 1; }
+.actions.inactive .jeton-mise b { color: var(--text-faint); }
 
 .boutons-action { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
 .btn-action { flex: 1 1 150px; min-width: 130px; font-size: var(--text-base); }
@@ -549,8 +560,16 @@ footer a:hover { color: var(--accent); }
 .btn-passer:hover:not(:disabled), .btn-suivre:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .btn-relancer { background: var(--brand-gradient); color: #fff; border: 1px solid transparent; }
 .btn-relancer:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-accent); }
+/* Désactivé, il perd son dégradé : sans cela il resterait le seul bouton
+   coloré de la barre grisée, et attirerait l'œil sur une action impossible. */
+.btn-relancer:disabled {
+  background: var(--surface-card); color: var(--text-muted);
+  border-color: var(--border-strong); box-shadow: none;
+}
 
 .pendule { height: 4px; border-radius: var(--radius-pill); background: var(--surface-sunken); overflow: hidden; }
+/* Hors tour la pendule s'efface, mais garde sa place dans le flux. */
+.pendule.vide { opacity: 0; }
 .pendule span {
   display: block; height: 100%; width: 100%;
   background: var(--brand-gradient); transform-origin: left;
@@ -585,7 +604,10 @@ footer a:hover { color: var(--accent); }
 .jeton-mise:hover:not(:disabled) span { color: var(--accent); }
 .jeton-mise[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .jeton-mise[aria-pressed="true"] span { color: var(--accent); }
-.jeton-mise:disabled { opacity: 0.3; cursor: not-allowed; }
+.jeton-mise:disabled { opacity: 0.45; cursor: not-allowed; }
+.jeton-mise:disabled span { color: var(--text-faint); }
+
+.mise-fine input:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .mise-fine { flex: 1 1 240px; display: flex; align-items: center; gap: var(--space-3); }
 .mise-fine input[type="range"] { flex: 1; accent-color: var(--accent); min-width: 0; }
