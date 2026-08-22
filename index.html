@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Poker — dchirez.fr</title>
+<meta name="description" content="Poker Texas Hold'em en ligne entre amis : créez une table, partagez le code, jouez à six. Deux cartes par joueur, cinq cartes communes, connexion directe entre navigateurs.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%83%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="ds.css">
+<link rel="stylesheet" href="poker.css">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<header class="entete">
+  <div class="entete-gauche">
+    <span class="ds-eyebrow">dchirez.fr — page de jeux</span>
+    <span class="marque">Poker</span>
+  </div>
+  <div class="entete-droite">
+    <span id="etatReseau" class="pastille" hidden><i></i><span></span></span>
+    <button id="btnTheme" class="bouton-icone" type="button" aria-label="Changer de thème" title="Changer de thème">◐</button>
+    <button id="btnRegles" class="bouton-icone" type="button" aria-label="Règles du jeu" title="Règles">?</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ ÉCRAN 1 — ACCUEIL ============ -->
+<section id="ecranAccueil" class="ecran">
+  <div class="hero">
+    <h1>Une table de poker,<br><span class="ds-gradient-text">un code, vos amis.</span></h1>
+    <p class="hero-sous">
+      Texas Hold'em à six : deux cartes en main, cinq cartes communes.
+      Les navigateurs se parlent directement — aucun compte, aucun serveur de jeu,
+      rien à installer.
+    </p>
+  </div>
+
+  <div class="champ champ-pseudo">
+    <label for="saisiePseudo">Votre pseudo</label>
+    <input id="saisiePseudo" type="text" maxlength="14" autocomplete="nickname"
+           placeholder="Damien" spellcheck="false">
+  </div>
+
+  <div class="cartes-accueil">
+
+    <div class="ds-card carte-accueil">
+      <span class="ds-eyebrow">Vous invitez</span>
+      <h2>Créer une table</h2>
+      <p>Vous ouvrez la partie et distribuez les cartes. Gardez cet onglet ouvert : il fait tourner la table.</p>
+
+      <div class="reglages">
+        <div class="champ">
+          <label for="saisieBlindes">Blindes</label>
+          <select id="saisieBlindes">
+            <option value="5">5 / 10</option>
+            <option value="10" selected>10 / 20</option>
+            <option value="25">25 / 50</option>
+            <option value="50">50 / 100</option>
+          </select>
+        </div>
+        <div class="champ">
+          <label for="saisieTapis">Tapis de départ</label>
+          <select id="saisieTapis">
+            <option value="1000">1 000</option>
+            <option value="2000" selected>2 000</option>
+            <option value="5000">5 000</option>
+            <option value="10000">10 000</option>
+          </select>
+        </div>
+        <div class="champ">
+          <label for="saisiePendule">Temps de réflexion</label>
+          <select id="saisiePendule">
+            <option value="0">Sans limite</option>
+            <option value="30">30 secondes</option>
+            <option value="45" selected>45 secondes</option>
+            <option value="90">90 secondes</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="btnCreer" class="btn btn-md btn-gradient" type="button">Ouvrir la table</button>
+    </div>
+
+    <div class="ds-card carte-accueil">
+      <span class="ds-eyebrow">Vous êtes invité</span>
+      <h2>Rejoindre une table</h2>
+      <p>Entrez le code à cinq caractères que l'hôte vous a transmis, puis choisissez un siège libre.</p>
+
+      <div class="champ champ-code">
+        <label for="saisieCode">Code de la table</label>
+        <input id="saisieCode" type="text" maxlength="5" placeholder="ABC23"
+               autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </div>
+
+      <button id="btnRejoindre" class="btn btn-md btn-secondary" type="button">Rejoindre</button>
+    </div>
+
+  </div>
+
+  <p id="erreurAccueil" class="erreur" hidden></p>
+
+  <p class="note-accueil">
+    Jetons fictifs, aucun enjeu réel. La partie vit dans vos navigateurs :
+    quand l'hôte ferme son onglet, la table se termine.
+  </p>
+</section>
+
+<!-- ============ ÉCRAN 2 — TABLE ============ -->
+<section id="ecranTable" class="ecran" hidden>
+
+  <div class="barre-table">
+    <div class="bloc-code">
+      <span class="ds-eyebrow">Code de la table</span>
+      <div class="code-ligne">
+        <strong id="codeTable" class="code">—</strong>
+        <button id="btnCopier" class="btn-mini" type="button">Copier le lien</button>
+      </div>
+    </div>
+    <div class="bloc-infos">
+      <span id="infoBlindes" class="badge badge-md badge-neutral"></span>
+      <span id="infoMain" class="badge badge-md badge-outline"></span>
+    </div>
+    <button id="btnQuitter" class="btn-mini btn-mini-danger" type="button">Quitter la table</button>
+  </div>
+
+  <div class="plateau">
+
+    <div class="tapis-enveloppe">
+      <div id="tapis" class="tapis">
+        <div class="centre">
+          <div id="annonce" class="annonce"></div>
+          <div id="board" class="board"></div>
+          <div id="pot" class="pot" hidden></div>
+        </div>
+        <div id="sieges" class="sieges"></div>
+      </div>
+    </div>
+
+    <aside class="panneau">
+      <div class="panneau-titre">
+        <span class="ds-eyebrow">Déroulé de la partie</span>
+      </div>
+      <ol id="journal" class="journal"></ol>
+    </aside>
+
+  </div>
+
+  <div id="zoneAction" class="zone-action">
+    <div id="messageAction" class="message-action"></div>
+
+    <div id="actionsJeu" class="actions" hidden>
+      <div class="pendule" id="pendule" hidden><span id="penduleBarre"></span></div>
+      <div class="boutons-action">
+        <button id="btnCoucher" class="btn btn-md btn-action btn-coucher" type="button">Se coucher</button>
+        <button id="btnPasser"  class="btn btn-md btn-action btn-passer"  type="button">Check</button>
+        <button id="btnSuivre"  class="btn btn-md btn-action btn-suivre"  type="button">Suivre</button>
+        <button id="btnRelancer" class="btn btn-md btn-action btn-relancer" type="button">Relancer</button>
+      </div>
+      <div id="zoneMise" class="zone-mise" hidden>
+        <input id="curseurMise" type="range" min="0" max="100" step="1">
+        <div class="mise-details">
+          <input id="saisieMise" type="number" inputmode="numeric">
+          <div class="raccourcis">
+            <button class="btn-mini" data-fraction="0.5" type="button">½ pot</button>
+            <button class="btn-mini" data-fraction="0.75" type="button">¾ pot</button>
+            <button class="btn-mini" data-fraction="1" type="button">Pot</button>
+            <button class="btn-mini" data-fraction="max" type="button">Tapis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="actionsHote" class="actions-hote" hidden>
+      <button id="btnDistribuer" class="btn btn-md btn-gradient" type="button">Distribuer la main suivante</button>
+    </div>
+
+    <div id="actionsJoueur" class="actions-joueur">
+      <button id="btnRecaver" class="btn-mini" type="button" hidden>Recaver</button>
+      <button id="btnSeLever" class="btn-mini" type="button" hidden>Quitter mon siège</button>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<footer>© <a href="https://dchirez.fr">dchirez.fr</a></footer>
+
+<!-- ============ MODALE RÈGLES ============ -->
+<div id="voileRegles" class="voile" hidden>
+  <div class="modale" role="dialog" aria-modal="true" aria-labelledby="titreRegles">
+    <h2 id="titreRegles">Texas Hold'em en bref</h2>
+
+    <h3>Le déroulé d'une main</h3>
+    <p>Chaque joueur reçoit <strong>deux cartes fermées</strong>. Cinq <strong>cartes communes</strong>
+    sont ensuite retournées au centre : trois d'un coup (le flop), puis une (le turn), puis une
+    dernière (la river). Un tour d'enchères précède chaque nouvelle carte.</p>
+    <p>Vous composez la <strong>meilleure main de cinq cartes</strong> en combinant librement vos deux
+    cartes et les cinq cartes communes. Les cinq cartes du centre peuvent suffire.</p>
+
+    <h3>Les enchères</h3>
+    <ul>
+      <li><strong>Check</strong> — passer la parole sans miser, possible seulement s'il n'y a rien à suivre.</li>
+      <li><strong>Suivre</strong> — payer la mise en cours pour rester dans le coup.</li>
+      <li><strong>Relancer</strong> — augmenter la mise. La relance minimum vaut la précédente.</li>
+      <li><strong>Se coucher</strong> — abandonner la main et ce que vous avez déjà misé.</li>
+      <li><strong>Tapis</strong> — miser tous vos jetons. Si les autres misent davantage, ils jouent un pot latéral que vous ne pouvez pas gagner.</li>
+    </ul>
+
+    <h3>Les mains, de la plus forte à la plus faible</h3>
+    <ol class="liste-mains">
+      <li><strong>Quinte flush royale</strong> — 10 J D R A de la même couleur</li>
+      <li><strong>Quinte flush</strong> — cinq cartes qui se suivent, même couleur</li>
+      <li><strong>Carré</strong> — quatre cartes de même valeur</li>
+      <li><strong>Full</strong> — un brelan et une paire</li>
+      <li><strong>Couleur</strong> — cinq cartes de la même couleur</li>
+      <li><strong>Quinte</strong> — cinq cartes qui se suivent</li>
+      <li><strong>Brelan</strong> — trois cartes de même valeur</li>
+      <li><strong>Double paire</strong></li>
+      <li><strong>Paire</strong></li>
+      <li><strong>Hauteur</strong> — la plus haute carte départage</li>
+    </ol>
+    <p class="petit">L'As vaut 1 ou 14 : il ferme la quinte 10-J-D-R-A comme il ouvre la quinte A-2-3-4-5.</p>
+
+    <h3>Cette table</h3>
+    <p>Cash game à six joueurs, jetons fictifs. Vous pouvez recaver entre deux mains, et rejoindre
+    ou quitter la table à tout moment. La connexion est directe entre navigateurs : l'onglet de
+    l'hôte fait tourner la partie et doit rester ouvert.</p>
+
+    <button id="btnFermerRegles" class="btn btn-md btn-secondary" type="button">Fermer</button>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
