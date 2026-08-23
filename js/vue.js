@@ -117,6 +117,113 @@ function rendreBoard(etat, mise) {
   boardVu.nb = etat.board.length;
 }
 
+/* ============================================================
+   JETONS — décor
+   Deux effets, sans aucune incidence sur la partie : des jetons qui
+   filent du siège vers le centre à chaque mise, et un tas qui grossit
+   au milieu du tapis, derrière les cartes communes.
+   ============================================================ */
+
+const NB_COLONNES_TAS = 5;
+const HAUTEUR_MAX_TAS = 7;   // jetons empilés par colonne avant d'en ouvrir une
+
+/* Mises déjà vues, pour ne lancer une animation que sur ce qui vient
+   réellement d'être misé. Le rendu se rejoue à chaque message reçu. */
+let misesVues = { main: -1, parSiege: [] };
+
+/* On n'anime ni quand le joueur a demandé moins de mouvement, ni quand
+   l'onglet est en arrière-plan — l'onglet de l'hôte y passe le plus clair
+   de son temps, et les animations y sont suspendues. */
+function animationsUtiles() {
+  return !document.hidden && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/* Un jeton qui part d'un point du tapis et rejoint le pot, avec une
+   légère cloche pour que la trajectoire ne soit pas une simple droite. */
+function lancerJeton(depuis, vers, delai) {
+  const tapis = $("tapis");
+  const jeton = document.createElement("div");
+  jeton.className = "jeton-vol";
+  jeton.style.left = depuis.x + "px";
+  jeton.style.top = depuis.y + "px";
+  tapis.append(jeton);
+
+  const dx = vers.x - depuis.x;
+  const dy = vers.y - depuis.y;
+  const animation = jeton.animate(
+    [
+      { transform: "translate(-50%, -50%) scale(0.6)", opacity: 0 },
+      { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 26}px)) scale(1.1)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.9)`, opacity: 1 },
+    ],
+    { duration: 520, delay: delai, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" },
+  );
+  // Filet de sécurité : si l'animation est suspendue (onglet masqué en
+  // cours de vol, économie d'énergie), `onfinish` ne viendra jamais et le
+  // jeton resterait sur le tapis. Le minuteur, lui, finit toujours.
+  const retirer = () => jeton.remove();
+  animation.onfinish = retirer;
+  animation.oncancel = retirer;
+  setTimeout(retirer, delai + 900);
+}
+
+/* Compare les mises à celles du rendu précédent et anime la différence. */
+function animerMises(etat) {
+  if (etat.numeroMain !== misesVues.main) {
+    misesVues = { main: etat.numeroMain, parSiege: [] };
+  }
+
+  const tapis = $("tapis").getBoundingClientRect();
+  const cible = { x: tapis.width / 2, y: tapis.height / 2 + tapis.height * 0.06 };
+  const anime = animationsUtiles();
+
+  for (let siege = 0; siege < MAX_SIEGES; siege++) {
+    const joueur = etat.sieges[siege];
+    const mise = joueur ? joueur.mise : 0;
+    const avant = misesVues.parSiege[siege] || 0;
+    misesVues.parSiege[siege] = mise;
+    if (!anime || mise <= avant) continue;
+
+    const el = $("sieges").querySelector(`.siege[data-siege="${siege}"]`);
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    const depuis = { x: r.left + r.width / 2 - tapis.left, y: r.top + r.height / 2 - tapis.top };
+
+    // Trois jetons décalés : une mise se lit mieux qu'avec un seul disque.
+    const nb = mise - avant >= etat.config.grosseBlinde * 4 ? 3 : 2;
+    for (let i = 0; i < nb; i++) lancerJeton(depuis, cible, i * 70);
+  }
+}
+
+/* Le tas au centre : sa taille suit le pot, en échelle logarithmique pour
+   qu'un gros pot ne déborde pas du tapis. Purement indicatif. */
+function rendrePileJetons(etat) {
+  const pile = $("pileJetons");
+  const bb = etat.config.grosseBlinde || 20;
+  const nb = etat.pot > 0 ? Math.min(NB_COLONNES_TAS * HAUTEUR_MAX_TAS, Math.round(Math.log2(1 + etat.pot / bb) * 5)) : 0;
+
+  // Le tas s'appuie sur le bas des cartes communes : les premiers jetons
+  // dépassent en dessous, les suivants s'empilent derrière elles.
+  const board = $("board");
+  pile.style.top = (board.offsetTop + board.offsetHeight + 2) + "px";
+
+  if (Number(pile.dataset.nb) === nb) return;   // rien de neuf à dessiner
+  pile.dataset.nb = nb;
+  pile.replaceChildren();
+
+  for (let i = 0; i < nb; i++) {
+    const colonne = i % NB_COLONNES_TAS;
+    const etage = Math.floor(i / NB_COLONNES_TAS);
+    const jeton = document.createElement("i");
+    jeton.className = "jeton-tas t" + (i % 3);
+    // Colonnes réparties de part et d'autre du centre, empilées vers le haut.
+    jeton.style.left = (colonne - (NB_COLONNES_TAS - 1) / 2) * 20 + "px";
+    jeton.style.top = -(etage * 5) + "px";
+    jeton.style.zIndex = String(HAUTEUR_MAX_TAS - etage);
+    pile.append(jeton);
+  }
+}
+
 /* ---------- Sièges ---------- */
 
 function rendreSieges(etat, contexte, mise) {
@@ -141,6 +248,7 @@ function rendreSieges(etat, contexte, mise) {
     const position = (siege - ancre + MAX_SIEGES) % MAX_SIEGES;
     const el = document.createElement("div");
     el.className = "siege pos-" + position;
+    el.dataset.siege = siege;          // repère pour l'animation des jetons
 
     const joueur = etat.sieges[siege];
 
@@ -518,6 +626,9 @@ export function rendre(etat, contexte) {
   rendreBoard(etat, mise);
   rendreSieges(etat, contexte, mise);
   rendreCentre(etat);
+  rendrePileJetons(etat);
+  // Après le rendu des sièges : l'animation part de leur position réelle.
+  animerMises(etat);
   rendreForce(mise);
   rendreMaMain(etat, mise);
   rendreJournal(etat);
@@ -559,6 +670,12 @@ export function montrerEcran(nom) {
   // En partie, la page se comporte comme une application plein écran.
   document.body.classList.toggle("en-table", nom === "table");
   if (nom === "table") construireForce();
+  else {
+    // Quitter la table remet les compteurs à zéro : sans cela, la partie
+    // suivante rejouerait les animations des mises déjà vues.
+    misesVues = { main: -1, parSiege: [] };
+    boardVu = { main: -1, nb: 0 };
+  }
 }
 
 export function erreurAccueil(texte) {

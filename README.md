@@ -116,6 +116,19 @@ vers le joueur au départ. Les trois cartes du flop se retournent en cascade, d�
 déjà été montrées et n'anime que les nouvelles — sinon le board se retournerait à chaque
 action d'un adversaire.
 
+À chaque mise, des **jetons filent du siège vers le pot** en suivant une courbe — deux
+pour une petite mise, trois au-delà de quatre grosses blindes. Un **tas grossit au centre
+du tapis**, derrière les cartes communes et dépassant légèrement sous elles ; sa taille
+suit le pot en échelle logarithmique, pour qu'un gros pot ne déborde pas de l'ellipse.
+Le montant exact reste écrit dans la pastille : le tas n'est que du décor.
+
+Deux précautions pour ce décor. Il ne se joue pas quand le système demande moins de
+mouvement, ni quand **l'onglet est en arrière-plan** — celui de l'hôte y passe le plus
+clair de son temps, et les animations y sont suspendues par le navigateur. Et chaque
+jeton en vol est retiré par un minuteur en plus de l'événement de fin d'animation : sans
+ce filet, une animation suspendue en plein vol laisserait son jeton sur le tapis pour de
+bon, et ils s'accumuleraient main après main.
+
 Votre **meilleure main du moment** est recalculée à chaque carte du centre. Elle
 s'affiche sous le tapis, la combinaison correspondante s'allume dans la colonne de
 gauche, et les cartes qui la portent — les vôtres comme celles du board — sont cerclées
