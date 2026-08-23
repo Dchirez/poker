@@ -120,7 +120,9 @@ action d'un adversaire.
 pour une petite mise, trois au-delà de quatre grosses blindes. Un **tas grossit au centre
 du tapis**, derrière les cartes communes et dépassant légèrement sous elles ; sa taille
 suit le pot en échelle logarithmique, pour qu'un gros pot ne déborde pas de l'ellipse.
-Le montant exact reste écrit dans la pastille : le tas n'est que du décor.
+Le montant exact reste écrit dans la pastille : le tas n'est que du décor, et il est
+volontairement très peu contrasté — autour de 1,7 contre le tapis, quand les cartes sont
+à 19,6. On le devine plus qu'on ne le lit, ce qui est exactement son rôle.
 
 ### Le son, synthétisé
 

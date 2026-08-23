@@ -310,8 +310,10 @@ footer a:hover { color: var(--accent); }
   transform: translateX(-50%);
   width: 24px; height: 9px;
   border-radius: 50%;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
-  opacity: 0.92;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  /* Volontairement discret : le tas donne du volume au centre du tapis,
+     il ne doit pas rivaliser avec les cartes ni avec le montant du pot. */
+  opacity: 0.34;
 }
 /* Trois teintes tirées de la marque, pour que la pile ait du relief. */
 .jeton-tas.t0 { background: linear-gradient(180deg, var(--orange-400), var(--orange-600)); }
