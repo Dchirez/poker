@@ -216,6 +216,35 @@ dépareillé, AA contre cinq…), un cas dénombrable de tête, et une contre-é
 exhaustive refaite avec l'évaluateur de référence sur des boards tirés au hasard —
 concordance au dix-millième.
 
+### Le chat
+
+Le panneau de droite a deux onglets : le déroulé de la partie et un chat. Deux
+conventions d'écriture :
+
+- **`@pseudo`** cite un joueur. Les pseudos sont proposés dès la frappe du `@` —
+  flèches et Entrée pour choisir. Être cité surligne le message chez soi.
+- **`#pseudo`** en tête de message l'envoie à ce seul joueur. L'expéditeur voit
+  « privé → Léa », le destinataire voit « privé », et **personne d'autre ne reçoit
+  rien** : le message ne quitte l'hôte que vers ses deux extrémités.
+
+L'hôte est le relais. Il résout l'auteur d'un message **depuis sa connexion, jamais
+depuis le message** — la même règle que pour les actions de jeu, qui empêche d'écrire
+sous le nom d'un autre. Il limite aussi à un message toutes les 400 ms, pour qu'une
+table ne puisse pas être noyée.
+
+Le texte d'un chat vient d'un autre joueur : il est nettoyé de ses caractères de
+contrôle, borné à 300 caractères, et surtout **rendu exclusivement en `textContent`**.
+Un message reste du texte quoi qu'on y écrive — envoyer `<img src=x onerror=…>`
+affiche ces caractères, sans créer la moindre balise.
+
+Les `#pseudo` retiennent le pseudo le plus long qui corresponde, pour que « #Max » et
+« #Maxime » restent distinguables, et `#Léa` sans texte derrière part en clair plutôt
+qu'en privé vide.
+
+Le fil est **éphémère** : rien n'est conservé ni rejoué à un joueur qui arrive en cours
+de route. C'est le plus simple, et cela évite qu'un message privé ressurgisse chez
+quelqu'un qui n'en était pas le destinataire.
+
 ### Choisir un montant
 
 Les raccourcis de mise annoncent **la somme en jetons**, pas une fraction à convertir de

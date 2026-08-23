@@ -18,6 +18,7 @@ import {
 } from "./vue.js";
 import { calculerEquite } from "./equite.js";
 import * as sons from "./sons.js";
+import { initChat, ajouterMessage, viderMessages, nettoyerTexte, extraireDestinataire } from "./chat.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -200,6 +201,7 @@ function surMessageInvite(idConnexion, message) {
   // Tout message vaut signe de vie, y compris un simple battement.
   dernierSigne.set(idJoueur, Date.now());
   if (message.t === "pouls") return;
+  if (message.t === "chat") { traiterChat(idJoueur, message.texte); return; }
 
   traiterIntention(idJoueur, message, idConnexion);
 }
@@ -219,6 +221,10 @@ function surMessageHote(message) {
     case "bienvenue":
       etatReseau("en-ligne", "Connecté");
       break;
+    case "chat":
+      ajouterMessage(message);
+      signalerChat(message);
+      break;
     case "refus":
       signaler(message.raison);
       break;
@@ -236,8 +242,66 @@ function surMessageHote(message) {
 /* Chemin unique pour toute intention du joueur local : l'hôte l'applique
    directement, l'invité l'envoie sur le fil. */
 function envoyer(message) {
-  if (estHote) traiterIntention(monId, message, null);
-  else if (salon) salon.envoyer(message);
+  if (estHote) {
+    // Le chat ne touche pas au moteur : il ne passe pas par les intentions
+    // de jeu et ne déclenche aucune rediffusion d'état.
+    if (message.t === "chat") traiterChat(monId, message.texte);
+    else traiterIntention(monId, message, null);
+  } else if (salon) {
+    salon.envoyer(message);
+  }
+}
+
+/* ============================================================
+   CHAT
+   L'hôte est le relais : il résout l'auteur depuis sa connexion — jamais
+   depuis le message — puis diffuse à tous, ou au seul destinataire d'un
+   message privé. Un privé ne transite que vers ses deux extrémités.
+   ============================================================ */
+
+const dernierChat = new Map();     // idJoueur -> horodatage, contre le flood
+
+/* Joueurs joignables : les assis et les spectateurs connectés. */
+function joueursDuChat() {
+  const vus = new Map();
+  if (partie) {
+    for (const j of partie.sieges) if (j && j.id) vus.set(j.id, j.nom);
+  }
+  for (const id of connexionParJoueur.keys()) {
+    if (!vus.has(id)) vus.set(id, nomParJoueur.get(id) || "Joueur");
+  }
+  if (!vus.has(monId)) vus.set(monId, monNom || "Joueur");
+  return [...vus].map(([id, nom]) => ({ id, nom }));
+}
+
+function remettreChatA(idJoueur, message) {
+  if (idJoueur === monId) { ajouterMessage(message); signalerChat(message); return; }
+  const idConnexion = connexionParJoueur.get(idJoueur);
+  if (idConnexion) salon.envoyer(idConnexion, message);
+}
+
+function traiterChat(idJoueur, texteBrut) {
+  const texte = nettoyerTexte(texteBrut);
+  if (!texte) return;
+
+  // Un joueur ne peut pas noyer la table : un message toutes les 400 ms.
+  const maintenant = Date.now();
+  if (maintenant - (dernierChat.get(idJoueur) || 0) < 400) return;
+  dernierChat.set(idJoueur, maintenant);
+
+  const joueurs = joueursDuChat();
+  const de = (joueurs.find((j) => j.id === idJoueur) || {}).nom || "Joueur";
+  const { cible, corps } = extraireDestinataire(texte, joueurs);
+  const message = { t: "chat", de, texte: corps, quand: maintenant };
+
+  if (cible) {
+    message.prive = true;
+    message.a = cible.nom;
+    remettreChatA(cible.id, message);
+    if (cible.id !== idJoueur) remettreChatA(idJoueur, message);
+  } else {
+    for (const j of joueurs) remettreChatA(j.id, message);
+  }
 }
 
 let minuteurMessage = null;
@@ -456,6 +520,8 @@ function fermerSession() {
   clearInterval(minuteurPouls);
   clearTimeout(minuteurDistribution);
   effacerEquite();
+  viderMessages();
+  dernierChat.clear();
   if (salon) salon.detruire();
   salon = null; partie = null; etatCourant = null; estHote = false;
   joueurParConnexion.clear(); connexionParJoueur.clear();
@@ -560,6 +626,60 @@ function basculerPanneau(bouton, panneau, classe) {
 }
 basculerPanneau($("btnBasculerForce"), $("panneauForce"), "force-ouverte");
 basculerPanneau($("btnBasculerJournal"), $("panneauJournal"), "journal-ouvert");
+
+/* ---------- Onglets du panneau droit ---------- */
+
+let ongletActif = "journal";
+let messagesNonLus = 0;
+
+/* Le chat est-il réellement sous les yeux ? Le panneau peut être replié
+   (invisible) ou masqué par la mise en page mobile. */
+function chatSousLesYeux() {
+  const panneau = $("panneauJournal");
+  const style = getComputedStyle(panneau);
+  return ongletActif === "chat" && style.display !== "none" && style.visibility !== "hidden";
+}
+
+function signalerChat() {
+  if (chatSousLesYeux()) return;
+  messagesNonLus++;
+  const pastille = $("pastilleChat");
+  pastille.hidden = false;
+  pastille.textContent = messagesNonLus > 9 ? "9+" : String(messagesNonLus);
+  $("btnBasculerJournal").classList.add("a-du-neuf");
+}
+
+function marquerChatLu() {
+  messagesNonLus = 0;
+  $("pastilleChat").hidden = true;
+  $("btnBasculerJournal").classList.remove("a-du-neuf");
+}
+
+function choisirOnglet(nom) {
+  ongletActif = nom;
+  $("ongletJournal").setAttribute("aria-selected", String(nom === "journal"));
+  $("ongletChat").setAttribute("aria-selected", String(nom === "chat"));
+  $("journal").hidden = nom !== "journal";
+  $("zoneChat").hidden = nom !== "chat";
+  if (nom === "chat") { marquerChatLu(); $("saisieChat").focus(); }
+}
+$("ongletJournal").addEventListener("click", () => choisirOnglet("journal"));
+$("ongletChat").addEventListener("click", () => choisirOnglet("chat"));
+
+/* Pseudos proposés à la complétion. L'hôte connaît tout le monde, y compris
+   les spectateurs ; un invité s'en tient aux joueurs assis, les seuls que
+   son état lui fasse connaître. */
+function joueursPourChat() {
+  if (estHote) return joueursDuChat();
+  if (!etatCourant) return [];
+  return etatCourant.sieges.filter(Boolean).map((s) => ({ id: null, nom: s.nom }));
+}
+
+initChat({
+  surEnvoi: (texte) => envoyer({ t: "chat", texte }),
+  joueurs: joueursPourChat,
+  monNom: () => monNom,
+});
 
 /* Son : coupure mémorisée d'une partie à l'autre. */
 const btnSon = $("btnSon");
