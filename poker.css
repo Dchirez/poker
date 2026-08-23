@@ -752,8 +752,14 @@ footer a:hover { color: var(--accent); }
     --carte-board:  clamp(36px, 5.6vh, 46px);
     --carte-mienne: clamp(42px, 6.4vh, 56px);
   }
-  .centre { width: 94%; }
-  .board { gap: 4px; }
+  /* Le centre passe de trois rangées à deux : l'annonce et le pot partagent
+     une ligne, le board occupe la sienne. Sans cela, le jeton de mise du
+     joueur du bas vient recouvrir le pot — l'ellipse est trop courte pour
+     loger six sièges et trois rangées au milieu. */
+  .centre { width: 94%; flex-flow: row wrap; justify-content: center; }
+  .annonce { order: 0; min-height: 0; }
+  .pot { order: 0; }
+  .board { order: 1; flex-basis: 100%; gap: 4px; }
 
   /* L'ellipse portrait est plus étroite : on resserre les flancs. Les sièges
      du haut et du bas restent franchement à l'intérieur, sinon leurs cartes
