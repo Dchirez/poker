@@ -476,6 +476,40 @@ function rendreMaMain(etat, mise) {
   el.append(legende, texte);
 }
 
+/* ---------- Équité ---------- */
+
+/* `info` vaut null pour effacer, { calcul: true } pendant le calcul, sinon
+   { equite, exact, adversaires, partiel }. */
+export function afficherEquite(info) {
+  const el = $("monEquite");
+  if (!info) { el.hidden = true; return; }
+  el.hidden = false;
+
+  if (info.calcul) {
+    el.replaceChildren(Object.assign(document.createElement("small"), { textContent: "Équité" }),
+                       Object.assign(document.createElement("span"), { textContent: "…" }));
+    el.removeAttribute("title");
+    return;
+  }
+
+  const pourcent = Math.round(info.equite * 100);
+  const legende = document.createElement("small");
+  legende.textContent = "Équité";
+  const valeur = document.createElement("span");
+  // Le préfixe « ≈ » distingue l'estimation par tirage de l'énumération
+  // exacte, possible seulement à la river en tête-à-tête.
+  valeur.textContent = (info.exact ? "" : "≈ ") + pourcent + " %";
+  el.replaceChildren(legende, valeur);
+  el.classList.toggle("provisoire", !!info.partiel);
+
+  const contre = info.adversaires === 1 ? "un adversaire" : info.adversaires + " adversaires";
+  el.title =
+    "Probabilité de remporter la main face à " + contre + " tenant des cartes au hasard"
+    + (info.exact ? ", calculée sur les 990 mains adverses possibles." : ", estimée sur 20 000 tirages.")
+    + "\n\nUn joueur qui vient de suivre une relance ne détient pas des cartes au hasard :"
+    + " le chiffre est optimiste face à un adversaire sélectif.";
+}
+
 /* ---------- Rendu complet ---------- */
 
 export function rendre(etat, contexte) {

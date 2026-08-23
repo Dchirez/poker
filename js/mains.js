@@ -226,6 +226,109 @@ export function cartesSignificatives(res) {
   return res.cartes.filter((c) => gardes.has(valeurDe(c)));
 }
 
+/* ============================================================
+   SCORE RAPIDE — chemin dédié à la simulation
+   `evaluer` énumère les 21 combinaisons de 5 cartes et alloue à chaque
+   tour : très lisible, mais ~46 000 mains/seconde, ce qui interdit tout
+   calcul d'équité en direct. Cette version ne fait aucune allocation et
+   ne renvoie que le score entier — pas les cartes retenues.
+
+   Elle produit EXACTEMENT le même entier que `evaluer(...).score`, ce
+   qui se vérifie par comparaison sur des millions de mains tirées au
+   hasard (voir test-mains.mjs). C'est ce qui permet d'avoir deux
+   implémentations sans avoir deux vérités.
+   ============================================================ */
+
+const _compte = new Uint8Array(15);        // occurrences par valeur (2..14)
+const _nbCouleur = new Uint8Array(4);      // occurrences par couleur
+const _masqueCouleur = new Uint16Array(4); // valeurs présentes, par couleur
+const _valeurs = new Uint8Array(5);        // rangs de départage
+
+/* Hauteur de la meilleure quinte contenue dans un masque de valeurs,
+   0 s'il n'y en a pas. L'As sert aussi de 1 pour la roue A-2-3-4-5. */
+function quinteDansMasque(masque) {
+  const m = masque | (((masque >> 14) & 1) << 1);
+  for (let haut = 14; haut >= 5; haut--) {
+    if (((m >> (haut - 4)) & 0b11111) === 0b11111) return haut;
+  }
+  return 0;
+}
+
+export function scoreRapide(cartes) {
+  _compte.fill(0); _nbCouleur.fill(0); _masqueCouleur.fill(0);
+  _valeurs.fill(0);
+  let masque = 0;
+
+  for (let i = 0; i < cartes.length; i++) {
+    const c = cartes[i];
+    const v = 2 + (c % 13);
+    const s = (c / 13) | 0;
+    _compte[v]++;
+    _nbCouleur[s]++;
+    _masqueCouleur[s] |= 1 << v;
+    masque |= 1 << v;
+  }
+
+  let couleur = -1;
+  for (let s = 0; s < 4; s++) if (_nbCouleur[s] >= 5) { couleur = s; break; }
+
+  let categorie = -1;
+
+  // Quinte flush — la seule main qui batte un carré.
+  if (couleur >= 0) {
+    const haut = quinteDansMasque(_masqueCouleur[couleur]);
+    if (haut) { categorie = haut === 14 ? 9 : 8; _valeurs[0] = haut; }
+  }
+
+  // Carré, puis full : deux mains fondées sur les groupes de valeurs.
+  if (categorie < 0) {
+    let carre = 0, brelan = 0, brelan2 = 0, paire = 0, paire2 = 0;
+    for (let v = 14; v >= 2; v--) {
+      const n = _compte[v];
+      if (n === 4 && !carre) carre = v;
+      else if (n === 3) { if (!brelan) brelan = v; else if (!brelan2) brelan2 = v; }
+      else if (n === 2) { if (!paire) paire = v; else if (!paire2) paire2 = v; }
+    }
+
+    if (carre) {
+      categorie = 7; _valeurs[0] = carre;
+      for (let v = 14; v >= 2; v--) if (v !== carre && _compte[v]) { _valeurs[1] = v; break; }
+    } else if (brelan && (brelan2 || paire)) {
+      // Deux brelans : le second sert de paire.
+      categorie = 6; _valeurs[0] = brelan;
+      _valeurs[1] = brelan2 > paire ? brelan2 : paire;
+    } else if (couleur >= 0) {
+      categorie = 5;
+      let n = 0;
+      for (let v = 14; v >= 2 && n < 5; v--) if ((_masqueCouleur[couleur] >> v) & 1) _valeurs[n++] = v;
+    } else {
+      const haut = quinteDansMasque(masque);
+      if (haut) { categorie = 4; _valeurs[0] = haut; }
+      else if (brelan) {
+        categorie = 3; _valeurs[0] = brelan;
+        let n = 1;
+        for (let v = 14; v >= 2 && n < 3; v--) if (v !== brelan && _compte[v]) _valeurs[n++] = v;
+      } else if (paire && paire2) {
+        categorie = 2; _valeurs[0] = paire; _valeurs[1] = paire2;
+        // Le kicker peut être une troisième paire restée de côté.
+        for (let v = 14; v >= 2; v--) if (v !== paire && v !== paire2 && _compte[v]) { _valeurs[2] = v; break; }
+      } else if (paire) {
+        categorie = 1; _valeurs[0] = paire;
+        let n = 1;
+        for (let v = 14; v >= 2 && n < 4; v--) if (v !== paire && _compte[v]) _valeurs[n++] = v;
+      } else {
+        categorie = 0;
+        let n = 0;
+        for (let v = 14; v >= 2 && n < 5; v--) if (_compte[v]) _valeurs[n++] = v;
+      }
+    }
+  }
+
+  let score = categorie;
+  for (let i = 0; i < 5; i++) score = score * 15 + _valeurs[i];
+  return score;
+}
+
 export function nomCarte(c) {
   return VALEURS[c % 13] + COULEURS[couleurDe(c)];
 }

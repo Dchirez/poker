@@ -149,6 +149,24 @@ footer a:hover { color: var(--accent); }
 
 .reglages { display: grid; gap: var(--space-3); margin: var(--space-2) 0 var(--space-4); }
 
+/* Réglage à cocher, avec son explication sous le libellé : une aide au jeu
+   mérite qu'on dise ce qu'elle fait avant de l'activer. */
+.bascule {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  padding: var(--space-3); margin-bottom: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface-sunken); cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.bascule:hover { border-color: var(--border-accent); }
+.bascule input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--accent); cursor: pointer; }
+.bascule span { font-size: var(--text-sm); color: var(--text-strong); font-weight: var(--weight-medium); }
+.bascule small {
+  display: block; margin-top: 4px;
+  font-size: var(--text-xs); font-weight: var(--weight-regular);
+  color: var(--text-muted); line-height: var(--leading-normal);
+}
+
 .champ-code input {
   font-family: var(--font-mono); font-size: var(--text-2xl);
   letter-spacing: 0.3em; text-transform: uppercase; text-align: center;
@@ -537,6 +555,24 @@ footer a:hover { color: var(--accent); }
   color: var(--accent-2);
   font-size: var(--text-sm); font-weight: var(--weight-semibold);
 }
+/* Équité : même forme que « votre main », mais en teinte de marque plutôt
+   qu'en violet — ce n'est pas la même nature d'information. */
+.mon-equite {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px; border-radius: var(--radius-pill);
+  background: var(--accent-soft); border: 1px solid var(--border-accent);
+  color: var(--accent); cursor: help;
+  font-size: var(--text-sm); font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.mon-equite small {
+  font-family: var(--font-mono); font-size: 10px; font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--text-muted);
+}
+/* Estimation encore en cours d'affinage */
+.mon-equite.provisoire span { opacity: 0.6; }
+
 .ma-main small {
   font-family: var(--font-mono); font-size: 10px; font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-wide); text-transform: uppercase;

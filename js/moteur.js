@@ -16,6 +16,10 @@ export function creerPartie(config = {}) {
       grosseBlinde:    config.grosseBlinde    ?? 20,
       tapisDepart:     config.tapisDepart     ?? 2000,
       secondesParTour: config.secondesParTour ?? 45,   // 0 = pas de pendule
+      // Aide au jeu : chaque client calcule sa propre équité, en local.
+      // Le moteur ne fait que transporter le réglage pour que la table
+      // entière joue avec les mêmes règles du jeu.
+      equite: config.equite ?? false,
     },
     sieges: Array(MAX_SIEGES).fill(null),
     bouton: -1,

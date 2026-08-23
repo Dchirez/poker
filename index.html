@@ -84,6 +84,16 @@
         </div>
       </div>
 
+      <label class="bascule" for="saisieEquite">
+        <input id="saisieEquite" type="checkbox">
+        <span>
+          Afficher l'équité
+          <small>Votre probabilité de gagner la main, recalculée à chaque carte.
+          Chacun calcule la sienne, en local. Désactivé par défaut : c'est une aide
+          au jeu, et le réglage vaut pour toute la table.</small>
+        </span>
+      </label>
+
       <button id="btnCreer" class="btn btn-md btn-gradient" type="button">Ouvrir la table</button>
     </div>
 
@@ -165,6 +175,7 @@
 
     <div class="bandeau-main">
       <div id="maMain" class="ma-main" hidden></div>
+      <div id="monEquite" class="mon-equite" hidden></div>
       <div id="messageAction" class="message-action"></div>
     </div>
 
