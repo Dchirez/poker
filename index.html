@@ -166,8 +166,27 @@
     </div>
 
     <aside id="panneauJournal" class="panneau panneau-journal">
-      <span class="ds-eyebrow">Déroulé de la partie</span>
+      <div class="onglets" role="tablist">
+        <button id="ongletJournal" class="onglet" type="button" role="tab" aria-selected="true">Déroulé</button>
+        <button id="ongletChat" class="onglet" type="button" role="tab" aria-selected="false">
+          Chat<i id="pastilleChat" class="pastille-chat" hidden></i>
+        </button>
+      </div>
+
       <ol id="journal" class="journal"></ol>
+
+      <div id="zoneChat" class="zone-chat" hidden>
+        <ol id="messagesChat" class="messages-chat"></ol>
+        <div class="saisie-chat">
+          <ul id="suggestionsChat" class="suggestions-chat" hidden role="listbox"></ul>
+          <input id="saisieChat" type="text" maxlength="300" autocomplete="off"
+                 aria-label="Message" placeholder="Message…">
+          <button id="btnEnvoyerChat" class="btn-mini" type="button">Envoyer</button>
+        </div>
+        <p class="aide-chat">
+          <b>@</b> cite un joueur · <b>#</b> en tête envoie en privé
+        </p>
+      </div>
     </aside>
 
   </div>
