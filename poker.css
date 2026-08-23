@@ -288,6 +288,52 @@ footer a:hover { color: var(--accent); }
   width: min(88%, 620px);
 }
 
+/* ---------- Jetons (décor) ---------- */
+
+/* Le tas au centre du tapis : posé derrière les cartes communes et
+   légèrement plus bas, de sorte qu'il dépasse sous elles. Purement
+   décoratif — le montant exact reste écrit dans la pastille du pot. */
+/* Point d'ancrage de taille nulle : sa position verticale est calée par la
+   vue sur le bas réel des cartes communes, pour que le tas émerge de
+   dessous quelle que soit la hauteur du centre. */
+.pile-jetons {
+  position: absolute; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.jeton-tas {
+  position: absolute;
+  /* Chaque jeton est centré sur la coordonnée que lui donne la vue, sinon
+     la pile entière se décale d'une demi-largeur vers la droite. */
+  transform: translateX(-50%);
+  width: 24px; height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  opacity: 0.92;
+}
+/* Trois teintes tirées de la marque, pour que la pile ait du relief. */
+.jeton-tas.t0 { background: linear-gradient(180deg, var(--orange-400), var(--orange-600)); }
+.jeton-tas.t1 { background: linear-gradient(180deg, var(--violet-400), var(--violet-600)); }
+.jeton-tas.t2 { background: linear-gradient(180deg, var(--ink-300), var(--ink-500)); }
+
+/* Les cartes passent devant le tas. */
+.board { position: relative; z-index: 1; }
+.pot { position: relative; z-index: 1; }
+.annonce { position: relative; z-index: 1; }
+
+/* Jeton en vol, du siège vers le pot. Créé et retiré par la vue. */
+.jeton-vol {
+  position: absolute;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--orange-300), var(--orange-600) 70%);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 6;
+}
+
 .annonce {
   font-family: var(--font-mono); font-size: var(--text-xs);
   letter-spacing: var(--tracking-widest); text-transform: uppercase;
