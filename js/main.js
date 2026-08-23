@@ -17,6 +17,7 @@ import {
   montantRaccourci, majBoutonRelance, majSelectionRaccourci, afficherEquite,
 } from "./vue.js";
 import { calculerEquite } from "./equite.js";
+import * as sons from "./sons.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -560,6 +561,21 @@ function basculerPanneau(bouton, panneau, classe) {
 basculerPanneau($("btnBasculerForce"), $("panneauForce"), "force-ouverte");
 basculerPanneau($("btnBasculerJournal"), $("panneauJournal"), "journal-ouvert");
 
+/* Son : coupure mémorisée d'une partie à l'autre. */
+const btnSon = $("btnSon");
+function majBoutonSon(actif) {
+  btnSon.textContent = actif ? "🔊" : "🔇";
+  btnSon.title = actif ? "Couper le son" : "Rétablir le son";
+  btnSon.setAttribute("aria-label", btnSon.title);
+  btnSon.setAttribute("aria-pressed", String(actif));
+}
+btnSon.addEventListener("click", () => majBoutonSon(sons.basculer()));
+
+/* Aucun navigateur ne laisse démarrer l'audio sans geste préalable : on
+   éveille le contexte à la première interaction, quelle qu'elle soit. */
+addEventListener("pointerdown", sons.eveiller, { once: true });
+addEventListener("keydown", sons.eveiller, { once: true });
+
 /* Plein écran : la table gagne toute la hauteur disponible. */
 $("btnPleinEcran").addEventListener("click", async () => {
   try {
@@ -621,6 +637,7 @@ addEventListener("beforeunload", (e) => {
 
 (function initialiser() {
   try {
+    majBoutonSon(sons.restaurerPreference());
     appliquerTheme(localStorage.getItem("poker.theme") || "dark");
     const pseudo = localStorage.getItem("poker.pseudo");
     if (pseudo) $("saisiePseudo").value = pseudo;
