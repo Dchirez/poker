@@ -14,8 +14,9 @@ import {
 } from "./reseau.js";
 import {
   rendre, rendrePendule, montrerEcran, erreurAccueil, etatReseau,
-  montantRaccourci, majBoutonRelance, majSelectionRaccourci,
+  montantRaccourci, majBoutonRelance, majSelectionRaccourci, afficherEquite,
 } from "./vue.js";
+import { calculerEquite } from "./equite.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -259,6 +260,44 @@ const contexteVue = {
 function rendreTout() {
   if (!etatCourant) return;
   rendre(etatCourant, contexteVue);
+  majEquite();
+}
+
+/* ---------- Équité ---------- */
+
+let annulerEquite = () => {};
+let signatureEquite = "";
+
+function effacerEquite() {
+  annulerEquite();
+  annulerEquite = () => {};
+  signatureEquite = "";
+  afficherEquite(null);
+}
+
+/* Relance le calcul quand — et seulement quand — la situation change :
+   nouvelle main, nouvelle carte au centre, ou adversaire qui se couche.
+   Sans cette signature, chaque message reçu relancerait une simulation. */
+function majEquite() {
+  const e = etatCourant;
+  if (!e || !e.config.equite || e.monSiege < 0 || e.phase === "attente") return effacerEquite();
+
+  const moi = e.sieges[e.monSiege];
+  if (!moi || moi.couche || !e.mesCartes || e.mesCartes.length !== 2) return effacerEquite();
+
+  const adversaires = e.sieges.filter((j, i) => j && i !== e.monSiege && j.enJeu && !j.couche).length;
+  if (adversaires < 1) return effacerEquite();
+
+  const signature = [e.numeroMain, e.board.length, adversaires, e.mesCartes.join("-")].join("|");
+  if (signature === signatureEquite) return;
+  signatureEquite = signature;
+
+  annulerEquite();
+  afficherEquite({ calcul: true });
+  annulerEquite = calculerEquite(
+    { mesCartes: e.mesCartes, board: e.board, adversaires },
+    (resultat) => afficherEquite(resultat),
+  );
 }
 
 function demarrerPendule() {
@@ -289,6 +328,7 @@ async function creerTable() {
       grosseBlinde: grosse,
       tapisDepart: Number($("saisieTapis").value),
       secondesParTour: Number($("saisiePendule").value),
+      equite: $("saisieEquite").checked,
     });
 
     salon = await ouvrirTable({
@@ -414,6 +454,7 @@ function fermerSession() {
   clearInterval(minuteurPendule);
   clearInterval(minuteurPouls);
   clearTimeout(minuteurDistribution);
+  effacerEquite();
   if (salon) salon.detruire();
   salon = null; partie = null; etatCourant = null; estHote = false;
   joueurParConnexion.clear(); connexionParJoueur.clear();

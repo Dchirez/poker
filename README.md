@@ -125,6 +125,55 @@ cinq cartes d'une simple paire éclairerait presque tout le tapis et ne dirait p
 Ce calcul est purement local, à partir des seules cartes que le client possède. C'est ce
 qui permet à chacun de voir sa main sans jamais voir celle des autres.
 
+### Équité — option désactivée par défaut
+
+Cochée à la création de la table, elle affiche votre **probabilité de remporter la
+main**, recalculée à chaque carte du centre. Le réglage voyage dans la configuration de
+la partie : il vaut pour tout le monde, personne ne joue avec une aide que les autres
+n'ont pas.
+
+Comme la mise en valeur de votre main, le calcul n'utilise que vos deux cartes et le
+board public. Il tourne en local, rien ne transite par le réseau, et il ne peut pas
+révéler la main d'un adversaire — il n'y a pas accès.
+
+Deux régimes selon ce qui est calculable :
+
+- **à la river en tête-à-tête**, les 990 mains adverses possibles sont énumérées : le
+  résultat est exact, affiché sans le préfixe `≈` ;
+- **partout ailleurs**, la combinatoire explose — au flop contre cinq adversaires, le
+  nombre de scénarios dépasse toute énumération. On tire alors 20 000 scénarios au
+  hasard (Monte-Carlo), soit une marge d'environ ±0,7 %, invisible sur un entier.
+
+Le travail est découpé en tranches de 10 ms qui rendent la main au navigateur : un
+téléphone lent affiche le chiffre en plusieurs étapes plutôt que de figer l'interface.
+
+**Ce que le chiffre ne dit pas.** Il suppose des adversaires tenant des cartes tirées au
+hasard. Quelqu'un qui vient de suivre une relance n'a pas une main quelconque : le
+pourcentage est donc structurellement optimiste face à un joueur sélectif. L'infobulle
+le rappelle. C'est un outil d'apprentissage, pas une prédiction.
+
+#### Un évaluateur dédié à la simulation
+
+`evaluer` énumère les 21 combinaisons de 5 cartes parmi 7 et alloue à chaque tour :
+très lisible, mais **46 000 mains par seconde**, ce qui interdisait tout calcul en
+direct — 3,3 secondes pour un seul point d'équité à cinq adversaires.
+
+`scoreRapide` fait le même travail sans aucune allocation, à partir de compteurs par
+valeur et de masques de bits par couleur : **6,7 millions de mains par seconde**, soit
+150 fois plus vite. Elle ne renvoie que le score, pas les cartes retenues, et ne sert
+donc qu'à la simulation.
+
+Deux implémentations, mais une seule vérité : `scoreRapide` produit **exactement le même
+entier** que `evaluer(...).score`, ce que `test-mains.mjs` vérifie sur 600 000 mains
+tirées au hasard à 5, 6 et 7 cartes, plus une dizaine de cas limites construits à la
+main (roue, deux brelans, trois paires, carré accompagné d'une couleur).
+
+Le calcul d'équité lui-même est éprouvé par trois voies indépendantes dans
+`test-equite.mjs` : les équités préflop publiées (AA contre un adversaire, 72
+dépareillé, AA contre cinq…), un cas dénombrable de tête, et une contre-épreuve
+exhaustive refaite avec l'évaluateur de référence sur des boards tirés au hasard —
+concordance au dix-millième.
+
 ### Choisir un montant
 
 Les raccourcis de mise annoncent **la somme en jetons**, pas une fraction à convertir de
@@ -157,8 +206,16 @@ redistribué.
 Chez l'hôte, `window.__poker` expose la partie en console pour éprouver une situation ;
 chez les invités, il ne donne que l'état déjà reçu.
 
-Le banc d'essai est dans le dépôt :
+Les trois bancs d'essai sont dans le dépôt :
 
 ```bash
 node sites/poker/test-moteur.mjs
+```
+
+```bash
+node sites/poker/test-mains.mjs
+```
+
+```bash
+node sites/poker/test-equite.mjs
 ```
