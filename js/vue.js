@@ -9,6 +9,7 @@ import {
   evaluerPartielle, nommer, cartesSignificatives,
 } from "./mains.js";
 import { MAX_SIEGES } from "./moteur.js";
+import * as sons from "./sons.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -111,8 +112,15 @@ function rendreBoard(etat, mise) {
       retenue: retenues.has(carte),
       combinee: !etat.resultats && mise && mise.cartes.has(carte),
     };
-    if (i >= boardVu.nb) board.append(elementCarteRetournee(carte, options, (i - boardVu.nb) * 130));
-    else board.append(elementCarte(carte, options));
+    if (i >= boardVu.nb) {
+      const delai = (i - boardVu.nb) * 130;
+      board.append(elementCarteRetournee(carte, options, delai));
+      // Le son accompagne le retournement, même si le mouvement est
+      // réduit : un son n'est pas du mouvement.
+      sons.carte(delai);
+    } else {
+      board.append(elementCarte(carte, options));
+    }
   }
   boardVu.nb = etat.board.length;
 }
@@ -182,15 +190,18 @@ function animerMises(etat) {
     const mise = joueur ? joueur.mise : 0;
     const avant = misesVues.parSiege[siege] || 0;
     misesVues.parSiege[siege] = mise;
-    if (!anime || mise <= avant) continue;
+    if (mise <= avant) continue;
 
+    // Trois jetons décalés : une mise se lit mieux qu'avec un seul disque.
+    const nb = mise - avant >= etat.config.grosseBlinde * 4 ? 3 : 2;
+    sons.jeton(0);
+    if (nb > 2) sons.jeton(110);
+
+    if (!anime) continue;
     const el = $("sieges").querySelector(`.siege[data-siege="${siege}"]`);
     if (!el) continue;
     const r = el.getBoundingClientRect();
     const depuis = { x: r.left + r.width / 2 - tapis.left, y: r.top + r.height / 2 - tapis.top };
-
-    // Trois jetons décalés : une mise se lit mieux qu'avec un seul disque.
-    const nb = mise - avant >= etat.config.grosseBlinde * 4 ? 3 : 2;
     for (let i = 0; i < nb; i++) lancerJeton(depuis, cible, i * 70);
   }
 }

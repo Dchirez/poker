@@ -122,12 +122,39 @@ du tapis**, derrière les cartes communes et dépassant légèrement sous elles 
 suit le pot en échelle logarithmique, pour qu'un gros pot ne déborde pas de l'ellipse.
 Le montant exact reste écrit dans la pastille : le tas n'est que du décor.
 
+### Le son, synthétisé
+
+Un claquement de carte et un choc de jetons sont des **transitoires de bruit filtré** :
+la Web Audio API les fabrique très bien, ce qui évite d'ajouter des fichiers audio à un
+projet qui n'a aucune dépendance. Un unique tampon de bruit blanc est relu à des vitesses
+et à travers des passe-bandes différents — médium mat et court pour la carte, aigus très
+brefs plus un corps résonant grave pour les jetons. Deux sons consécutifs ne sont jamais
+identiques : fréquence, vitesse de lecture et point de départ dans le tampon varient.
+
+Une carte retournée sonne à son propre délai : au flop, on entend bien trois claquements
+en cascade. Les mises sonnent, blindes comprises.
+
+Les niveaux ont été mesurés en rendu hors ligne plutôt qu'à l'oreille : pic à 0,27 pour
+la carte et 0,21 pour les jetons, sans un seul échantillon saturé. La première version
+plafonnait à 0,09 — le passe-bande retire beaucoup d'énergie au bruit, ce qui ne se
+devine pas.
+
+Le son se coupe d'un clic dans l'en-tête, et la préférence est conservée. Aucun
+navigateur ne laisse démarrer l'audio sans geste préalable : le contexte est éveillé à la
+première interaction, quelle qu'elle soit.
+
+### Ce qui se tait, et pourquoi
+
 Deux précautions pour ce décor. Il ne se joue pas quand le système demande moins de
 mouvement, ni quand **l'onglet est en arrière-plan** — celui de l'hôte y passe le plus
 clair de son temps, et les animations y sont suspendues par le navigateur. Et chaque
 jeton en vol est retiré par un minuteur en plus de l'événement de fin d'animation : sans
 ce filet, une animation suspendue en plein vol laisserait son jeton sur le tapis pour de
 bon, et ils s'accumuleraient main après main.
+
+Le son suit la même règle pour l'arrière-plan — personne ne veut entendre une table qu'il
+ne regarde pas — mais **pas** celle du mouvement réduit : un son n'est pas du mouvement,
+et la carte se retourne de toute façon, même sans animation.
 
 Votre **meilleure main du moment** est recalculée à chaque carte du centre. Elle
 s'affiche sous le tapis, la combinaison correspondante s'allume dans la colonne de
