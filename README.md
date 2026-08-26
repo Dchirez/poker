@@ -216,6 +216,42 @@ dépareillé, AA contre cinq…), un cas dénombrable de tête, et une contre-é
 exhaustive refaite avec l'évaluateur de référence sur des boards tirés au hasard —
 concordance au dix-millième.
 
+### Les bots
+
+Quand on n'est pas assez nombreux, l'hôte complète la table : un bouton **Bots** permet
+d'en ajouter un nombre précis ou de remplir tous les sièges libres. Ils ne parlent pas
+dans le chat et **recavent quand ils sont ruinés**, pour que la table ne se vide pas —
+seulement à zéro, les remettre à niveau à chaque main reviendrait à leur offrir des
+jetons sans fin.
+
+Un bot n'est qu'un siège dont les décisions sont calculées au lieu d'arriver par le
+réseau. Ni le protocole ni le code des invités n'ont bougé : pour eux, c'est un siège
+occupé comme un autre, signalé par un losange devant le pseudo.
+
+**La règle cardinale** : un bot décide à partir de ses deux cartes et du board, rien
+d'autre. L'hôte détient pourtant tout le paquet — c'est donc une contrainte volontaire,
+tenue par la signature de `decider`, qui ne reçoit jamais que la main du bot concerné.
+
+Ils comparent leur **équité à la cote du pot** : si la probabilité de gagner dépasse la
+part du pot qu'il faut payer, suivre est rentable ; bien au-delà, relancer l'est aussi.
+Trois tempéraments — prudent, posé, large — tirés au hasard, pour que cinq bots ne
+jouent pas comme un seul. Une décision coûte **2,7 ms**, et ils marquent un temps de
+réflexion de 0,6 à 1,6 s : un bot qui répond dans l'instant casse le rythme de la table.
+
+Deux réglages sont venus de l'observation, pas de la théorie :
+
+- le **seuil d'ouverture** se mesure par rapport à la part équitable du pot, pas dans
+  l'absolu. Un seuil fixe de 58 % d'équité était juste en tête-à-tête, mais à six
+  joueurs une part équitable ne vaut qu'un sixième : les bots checkaient tout ;
+- les **relances sont plafonnées** à la moitié du tapis sans main solide, et
+  sur-relancer une grosse mise demande un net avantage. Sans ces deux freins, les
+  relances taille-du-pot s'enchaînaient sur un pot qui grossit et toutes les mains
+  finissaient à tapis — cinq tapis en deux mains lors du premier essai, un seul après.
+
+Enfin, l'équité contre des mains au hasard reste optimiste face à un joueur sélectif :
+les bots paient un peu trop. Entre amis c'est plutôt heureux — un adversaire un peu
+large est plus amusant qu'un adversaire avare.
+
 ### Le chat
 
 Le panneau de droite a deux onglets : le déroulé de la partie et un chat. Deux

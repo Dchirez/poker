@@ -7,8 +7,10 @@
 
 import {
   creerPartie, asseoir, lever, recaver, agir, demarrerMain, peutDemarrer,
-  marquerAbsent, actionAutomatique, etatPour, etatPublic, siegeDe,
+  marquerAbsent, actionAutomatique, actionsPossibles, etatPour, etatPublic,
+  siegeDe, MAX_SIEGES,
 } from "./moteur.js";
+import { decider, delaiReflexion, profilAuHasard, NOMS } from "./bot.js";
 import {
   ouvrirTable, rejoindreTable, codeValide, monIdentifiant, LONGUEUR_CODE,
 } from "./reseau.js";
@@ -124,6 +126,108 @@ function programmerDistributionAuto() {
   }, 6500);
 }
 
+/* ============================================================
+   BOTS
+   Ils n'existent que chez l'hôte : pour tous les autres, ce sont des
+   sièges occupés comme les autres. Leur décision est calculée à partir
+   de leurs seules cartes — l'hôte détient pourtant tout le paquet, la
+   règle tient donc à ce qu'on leur passe, et à rien d'autre.
+   ============================================================ */
+
+const profilsBots = new Map();       // idJoueur -> tempérament
+let compteurBots = 0;
+let decisionBot = { cle: "", minuteur: null };
+
+function siegesLibres() {
+  if (!partie) return [];
+  return partie.sieges.map((s, i) => (s ? -1 : i)).filter((i) => i >= 0);
+}
+
+function nomDeBotDisponible() {
+  const pris = new Set(partie.sieges.filter(Boolean).map((s) => s.nom));
+  const libres = NOMS.filter((n) => !pris.has(n));
+  return libres.length ? libres[Math.floor(Math.random() * libres.length)] : "Bot " + (compteurBots + 1);
+}
+
+function ajouterBots(nombre) {
+  if (!estHote || !partie) return 0;
+  let ajoutes = 0;
+  for (const siege of siegesLibres()) {
+    if (ajoutes >= nombre) break;
+    const id = "bot-" + (++compteurBots);
+    const r = asseoir(partie, siege, id, nomDeBotDisponible(), true);
+    if (r.ok) { profilsBots.set(id, profilAuHasard()); ajoutes++; }
+  }
+  if (ajoutes) { programmerDistributionAuto(); diffuser(); }
+  return ajoutes;
+}
+
+function retirerBots() {
+  if (!estHote || !partie) return 0;
+  let retires = 0;
+  for (let i = 0; i < MAX_SIEGES; i++) {
+    const j = partie.sieges[i];
+    if (j && j.bot) { profilsBots.delete(j.id); lever(partie, j.id); retires++; }
+  }
+  if (retires) { clearTimeout(decisionBot.minuteur); decisionBot = { cle: "", minuteur: null }; diffuser(); }
+  return retires;
+}
+
+const compterBots = () => (partie ? partie.sieges.filter((s) => s && s.bot).length : 0);
+
+/* Si c'est à un bot de parler, on programme sa décision. La clé décrit
+   exactement la situation : tant qu'elle ne change pas, la réflexion en
+   cours reste valable et on ne la relance pas à chaque tour de boucle. */
+function jouerSiBot() {
+  if (!partie || partie.tour < 0) return;
+  const joueur = partie.sieges[partie.tour];
+  if (!joueur || !joueur.bot) return;
+
+  const cle = [partie.numeroMain, partie.phase, partie.tour, partie.miseCourante, joueur.mise].join("|");
+  if (decisionBot.cle === cle) return;
+
+  const options = actionsPossibles(partie, joueur.id);
+  if (!options) return;
+
+  clearTimeout(decisionBot.minuteur);
+  decisionBot = {
+    cle,
+    minuteur: setTimeout(() => {
+      // La table a pu bouger pendant la réflexion : on revérifie tout.
+      if (!partie || partie.sieges[partie.tour] !== joueur) return;
+      const maintenant = actionsPossibles(partie, joueur.id);
+      if (!maintenant) return;
+
+      const adversaires = partie.sieges
+        .filter((x, i) => x && i !== partie.tour && x.enJeu && !x.couche).length;
+
+      const choix = decider({
+        mesCartes: joueur.cartes,        // ses cartes, et rien d'autre
+        board: partie.board,
+        adversaires: Math.max(1, adversaires),
+        options: maintenant,
+        profil: profilsBots.get(joueur.id) || profilAuHasard(),
+      });
+
+      agir(partie, joueur.id, choix.action, choix.montant || 0);
+      programmerDistributionAuto();
+      diffuser();
+    }, delaiReflexion(options)),
+  };
+}
+
+/* Un bot ruiné se refait entre deux mains, pour que la table ne se vide
+   pas. Seulement à zéro : le remettre à niveau à chaque main reviendrait
+   à lui offrir des jetons sans fin. */
+function recaverLesBots() {
+  if (!partie || partie.phase !== "attente") return false;
+  let fait = false;
+  for (const j of partie.sieges) {
+    if (j && j.bot && j.tapis <= 0) { recaver(partie, j.id); fait = true; }
+  }
+  return fait;
+}
+
 /* Boucle de l'hôte : détecte les joueurs muets, fait respecter la pendule et
    débloque la table quand un joueur déconnecté a la parole. */
 function demarrerBoucleHote() {
@@ -133,13 +237,17 @@ function demarrerBoucleHote() {
     const maintenant = Date.now();
     let change = false;
 
-    // Un joueur sans battement depuis trop longtemps passe absent.
+    // Un joueur sans battement depuis trop longtemps passe absent. Les bots
+    // n'envoient rien : ils seraient déclarés absents en neuf secondes.
     for (const joueur of partie.sieges) {
-      if (!joueur || !joueur.id || joueur.id === monId) continue;
+      if (!joueur || !joueur.id || joueur.id === monId || joueur.bot) continue;
       const vu = dernierSigne.get(joueur.id) || 0;
       const muet = maintenant - vu > SEUIL_ABSENCE;
       if (muet !== joueur.absent) { marquerAbsent(partie, joueur.id, muet); change = true; }
     }
+
+    if (recaverLesBots()) change = true;
+    jouerSiBot();
 
     if (partie.tour >= 0) {
       const joueur = partie.sieges[partie.tour];
@@ -420,6 +528,7 @@ async function creerTable() {
     $("codeTable").textContent = salon.code;
     majUrlPartage(salon.code);
     montrerEcran("table");
+    $("btnBots").hidden = false;
     etatReseau("en-ligne", compterJoueurs());
     demarrerBoucleHote();
     demarrerPendule();
@@ -724,6 +833,36 @@ $("btnCopier").addEventListener("click", async () => {
   setTimeout(() => { $("btnCopier").textContent = "Copier le lien"; }, 2000);
 });
 
+/* Bots — réservé à l'hôte, qui est le seul à les faire jouer. */
+function majModaleBots() {
+  const libres = siegesLibres().length;
+  const bots = compterBots();
+  $("etatBots").textContent = bots
+    ? `${bots} bot${bots > 1 ? "s" : ""} à la table · ${libres} siège${libres > 1 ? "s" : ""} libre${libres > 1 ? "s" : ""}`
+    : `${libres} siège${libres > 1 ? "s" : ""} libre${libres > 1 ? "s" : ""}`;
+
+  const choix = $("nombreBots");
+  const valeur = Number(choix.value) || 1;
+  choix.replaceChildren();
+  for (let n = 1; n <= Math.max(1, libres); n++) {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
+    choix.append(o);
+  }
+  choix.value = String(Math.min(valeur, Math.max(1, libres)));
+  choix.disabled = libres === 0;
+  $("btnAjouterBots").disabled = libres === 0;
+  $("btnCompleterTable").disabled = libres === 0;
+  $("btnRetirerBots").disabled = bots === 0;
+}
+
+$("btnBots").addEventListener("click", () => { majModaleBots(); $("voileBots").hidden = false; });
+$("btnFermerBots").addEventListener("click", () => { $("voileBots").hidden = true; });
+$("voileBots").addEventListener("click", (e) => { if (e.target === $("voileBots")) $("voileBots").hidden = true; });
+$("btnAjouterBots").addEventListener("click", () => { ajouterBots(Number($("nombreBots").value) || 1); majModaleBots(); });
+$("btnCompleterTable").addEventListener("click", () => { ajouterBots(MAX_SIEGES); majModaleBots(); });
+$("btnRetirerBots").addEventListener("click", () => { retirerBots(); majModaleBots(); });
+
 /* Règles */
 $("btnRegles").addEventListener("click", () => {
   $("voileRegles").hidden = false;
@@ -734,7 +873,7 @@ $("voileRegles").addEventListener("click", (e) => {
   if (e.target === $("voileRegles")) $("voileRegles").hidden = true;
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") $("voileRegles").hidden = true;
+  if (e.key === "Escape") { $("voileRegles").hidden = true; $("voileBots").hidden = true; }
 });
 
 /* Thème : la table s'ouvre en sombre, mais la préférence est conservée. */

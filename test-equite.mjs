@@ -4,7 +4,7 @@
    — une énumération exhaustive refaite avec l'évaluateur de référence.
    Une erreur de raisonnement (égalités mal comptées, tirage avec remise,
    board mal reconstitué) déplacerait ces chiffres de plusieurs points. */
-import { calculerEquite } from "./js/equite.js";
+import { calculerEquite, equiteSynchrone } from "./js/equite.js";
 import { evaluer } from "./js/mains.js";
 
 const V = "23456789TJQKA", C = { s: 0, h: 1, d: 2, c: 3 };
@@ -104,6 +104,36 @@ for (let essai = 0; essai < 4; essai++) {
   if (!ok) echecs++;
   console.log(`  ${ok ? "OK  " : "FAIL"} board tiré au hasard n°${essai + 1} : ${pct.toFixed(4)} % contre ${attendu.toFixed(4)} % attendus`);
 }
+
+/* ------------------------------------------------------------
+   4. Le chemin synchrone — celui qu'empruntent les bots.
+   Il doit donner les mêmes chiffres que le chemin par tranches, et
+   répondre assez vite pour qu'un bot ne fasse pas attendre la table.
+   ------------------------------------------------------------ */
+console.log("— Chemin synchrone (décisions des bots) —");
+for (const [mes, adv, attendu, tol, nom] of preflop.slice(0, 4)) {
+  const e = equiteSynchrone({ mesCartes: mes.map(k), board: [], adversaires: adv }, 8000) * 100;
+  const ok = Math.abs(e - attendu) <= tol + 1;
+  if (!ok) echecs++;
+  console.log(`  ${ok ? "OK  " : "FAIL"} ${nom.padEnd(34)} ${e.toFixed(2).padStart(6)} %  (attendu ${attendu})`);
+}
+
+// La river en tête-à-tête doit rester exacte, même par le chemin synchrone.
+const exact = equiteSynchrone(
+  { mesCartes: ["As", "2h"].map(k), board: ["Ks", "Kd", "Kc", "Kh", "Qs"].map(k), adversaires: 1 },
+) * 100;
+const okExact = Math.abs(exact - (861 + 129 / 2) / 990 * 100) < 0.0001;
+if (!okExact) echecs++;
+console.log(`  ${okExact ? "OK  " : "FAIL"} ${"river énumérée".padEnd(34)} ${exact.toFixed(4)} %`);
+
+// Coût d'une décision : c'est ce qui décide du confort de la table.
+const t0 = process.hrtime.bigint();
+for (let i = 0; i < 20; i++) {
+  equiteSynchrone({ mesCartes: ["As", "Kh"].map(k), board: ["7d", "2c", "9s"].map(k), adversaires: 5 }, 4000);
+}
+const parDecision = Number(process.hrtime.bigint() - t0) / 1e6 / 20;
+console.log(`  décision au flop contre 5 adversaires : ${parDecision.toFixed(1)} ms`);
+if (parDecision > 120) { echecs++; console.log("  FAIL une décision de bot ne doit pas dépasser ~120 ms"); }
 
 console.log(echecs === 0 ? "\nTous les tests passent." : `\n${echecs} écart(s).`);
 process.exit(echecs === 0 ? 0 : 1);
