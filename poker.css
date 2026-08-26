@@ -469,6 +469,8 @@ footer a:hover { color: var(--accent); }
 .siege.actif .siege-boite { border-color: var(--accent); box-shadow: var(--shadow-accent); }
 .siege.couche { opacity: 0.42; }
 .siege.absent .siege-nom::after { content: " ⚠"; color: var(--amber-500); }
+/* Un bot s'annonce comme tel : on doit savoir contre qui on joue. */
+.siege.bot .siege-nom::before { content: "◈ "; color: var(--accent-2); }
 .siege.moi .siege-boite { border-color: var(--accent-2); }
 
 .siege-libre {
@@ -810,6 +812,14 @@ footer a:hover { color: var(--accent); }
 .modale p, .modale li { color: var(--text-body); font-size: var(--text-sm); margin-bottom: var(--space-2); }
 .modale ul, .modale ol { padding-left: var(--space-5); }
 .modale .btn { margin-top: var(--space-5); width: 100%; }
+.modale-etroite { max-width: 440px; }
+.etat-bots {
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--accent); text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+.actions-bots { display: grid; gap: var(--space-2); margin-top: var(--space-4); }
+.actions-bots .btn { margin-top: 0; }
 
 /* ============================================================
    RESPONSIVE

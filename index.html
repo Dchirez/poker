@@ -140,6 +140,7 @@
     <div class="bloc-boutons">
       <button id="btnRecaver" class="btn-mini" type="button" hidden>Recaver</button>
       <button id="btnSeLever" class="btn-mini" type="button" hidden>Quitter mon siège</button>
+      <button id="btnBots" class="btn-mini" type="button" hidden>Bots</button>
       <button id="btnBasculerForce" class="btn-mini" type="button" aria-pressed="true">Combinaisons</button>
       <button id="btnBasculerJournal" class="btn-mini" type="button" aria-pressed="true">Déroulé</button>
       <button id="btnQuitter" class="btn-mini btn-mini-danger" type="button">Quitter</button>
@@ -235,6 +236,31 @@
 </main>
 
 <footer>© <a href="https://dchirez.fr">dchirez.fr</a></footer>
+
+<!-- ============ MODALE BOTS ============ -->
+<div id="voileBots" class="voile" hidden>
+  <div class="modale modale-etroite" role="dialog" aria-modal="true" aria-labelledby="titreBots">
+    <h2 id="titreBots">Compléter la table</h2>
+    <p>Les bots comparent leur probabilité de gagner à la cote du pot, avec des
+    tempéraments différents — l'un suit large, l'autre attend mieux. Ils décident avec
+    leurs seules cartes, ne parlent pas dans le chat, et recavent quand ils sont ruinés.</p>
+
+    <p id="etatBots" class="etat-bots"></p>
+
+    <div class="champ">
+      <label for="nombreBots">Combien en ajouter ?</label>
+      <select id="nombreBots"></select>
+    </div>
+
+    <div class="actions-bots">
+      <button id="btnAjouterBots" class="btn btn-md btn-gradient" type="button">Ajouter</button>
+      <button id="btnCompleterTable" class="btn btn-md btn-secondary" type="button">Remplir les sièges libres</button>
+      <button id="btnRetirerBots" class="btn btn-md btn-secondary" type="button">Retirer les bots</button>
+    </div>
+
+    <button id="btnFermerBots" class="btn btn-md btn-ghost" type="button">Fermer</button>
+  </div>
+</div>
 
 <!-- ============ MODALE RÈGLES ============ -->
 <div id="voileRegles" class="voile" hidden>

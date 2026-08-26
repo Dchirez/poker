@@ -51,13 +51,16 @@ export function siegeDe(p, idJoueur) {
   return p.sieges.findIndex((j) => j && j.id === idJoueur);
 }
 
-export function asseoir(p, siege, idJoueur, nom) {
+export function asseoir(p, siege, idJoueur, nom, estBot = false) {
   if (siege < 0 || siege >= MAX_SIEGES) return { ok: false, raison: "Siège inexistant" };
   if (p.sieges[siege]) return { ok: false, raison: "Siège déjà occupé" };
   if (siegeDe(p, idJoueur) >= 0) return { ok: false, raison: "Vous êtes déjà assis" };
 
   p.sieges[siege] = {
     id: idJoueur, nom, tapis: p.config.tapisDepart, absent: false,
+    // Un bot est un siège comme un autre pour le moteur : seul l'hôte sait
+    // qu'il doit calculer sa décision au lieu de l'attendre.
+    bot: estBot,
     enJeu: false, cartes: [], mise: 0, total: 0,
     couche: false, allin: false, aParle: false, derniereAction: "",
   };
@@ -538,7 +541,7 @@ export function etatPublic(p) {
     resultats: p.resultats,
     journal: p.journal.slice(-40),
     sieges: p.sieges.map((j, i) => j && {
-      nom: j.nom, tapis: j.tapis, mise: j.mise, total: j.total,
+      nom: j.nom, tapis: j.tapis, mise: j.mise, total: j.total, bot: !!j.bot,
       couche: j.couche, allin: j.allin, enJeu: j.enJeu, absent: j.absent,
       derniereAction: j.derniereAction,
       nbCartes: j.cartes.length,

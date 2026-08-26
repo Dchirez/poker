@@ -249,6 +249,7 @@ function rendreSieges(etat, contexte, mise) {
 
     const cestMoi = siege === etat.monSiege;
     if (cestMoi) el.classList.add("moi");
+    if (joueur.bot) el.classList.add("bot");
     if (joueur.couche) el.classList.add("couche");
     if (joueur.absent) el.classList.add("absent");
     if (etat.tour === siege) el.classList.add("actif");
